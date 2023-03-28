@@ -35,35 +35,23 @@ def getProps(component:str):
 
 # search for components
 def componentsInHtml(path):
+    file = ""
+    components = []
+    
     with open(path, "r") as f:
-        components = []
-        listenForCompName = False
-        compName = ""
-        comp = ""
-        
-        while True:
-            c = f.read(1)
-            if not c:
-                break
-            
-            if(c == "<") :
-                listenForCompName = True
-                comp += c
-                continue
-            
-            if(c == ">" or c == "/") :
-                comp += "/>"
-                splittet = compName.split(" ")
-                components.append({"name":splittet[0], "props": getProps(compName), "component":compName})
-                comp = ""
-                listenForCompName = False
-                compName = ""
+        file = f.read() 
+        for line in f.readline():
+            if "import" in line:
+                compname = line.split(" ")[1]
+                path = line.split(" ")[3]
+    
+    listenForCompName = False
+    compName = ""
+    comp = ""
+    
+    
 
-            if listenForCompName:
-                comp += c
-                compName += c
-
-        return components
+    return components
 
 def getComponent(path, component) -> str:
     file = ""
