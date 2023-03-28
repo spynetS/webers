@@ -1,5 +1,8 @@
 from flagser import *
 import os
+from watcher import *
+
+srcpath = "./"
 
 def getProps(component:str):
     props = {}
@@ -30,71 +33,116 @@ def getProps(component:str):
             key += c
             
 
-    return props
-    
+    return props  
 
 # search for components
-def componentsInHtml(path):
-    file = ""
+def componentsInHtml(file, path=""):
+    if path != "":
+        f = open(path, "r")
+        file = f.read()
+    comps = {}
+    for line in file.split("\n"):
+        if "import" in line:
+            compname = line.split(" ")[1]
+            comps[compname] = line.split(" ")[3].replace("\n", "").replace('"', "")
+
     components = []
-    
-    with open(path, "r") as f:
-        file = f.read() 
-        for line in f.readline():
-            if "import" in line:
-                compname = line.split(" ")[1]
-                path = line.split(" ")[3]
-    
     listenForCompName = False
     compName = ""
     comp = ""
     
-    
+    for c in file:
+        if not c:
+            break
+        
+        if(c == "<") :
+            listenForCompName = True
+            comp += c
+            continue
+        
+        if(c == ">" or c == "/") :
+            comp += "/>"
+            splittet = compName.split(" ")
+            if(splittet[0] in comps.keys()):
+                components.append({"name":splittet[0], "props": getProps(compName), "component":compName, "path":comps[splittet[0]]})
+            comp = ""
+            listenForCompName = False
+            compName = ""
+
+        if listenForCompName:
+            comp += c
+            compName += c
 
     return components
 
-def getComponent(path, component) -> str:
+def getComponent(component) -> str:
     file = ""
-    with open(path, "r") as f:
+    with open(component["path"], "r") as f:
         file = f.read()
     
     for prop in component["props"]:
         file = file.replace("$"+prop,component["props"][prop].replace('"',""))
     return file
 
+def replaceComponent(file="",path="", components=[]):
+    if path != "":
+        with open(path, "r") as f:
+            file = f.read()
+    
+    tmp = ""
+    for line in file.split("\n"):
+        if "import" not in line: tmp+=line+"\n"
 
-def replaceComponent(path, components):
-    file = ""
-    with open(path, "r") as f:
-        file = f.read()
+    file = tmp
 
     for component in components:
-        #print("<"+component["component"]+"><"+component["name"]+"/>")
         file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"]) 
         file = file.replace("<"+component["component"]+"/>", component["file"]) 
+        for prop in component["props"]:
+            file = file.replace("$"+prop,component["props"][prop].replace('"',""))
 
         
-    print(file)
+    return file
 
-manager = FlagManager([
-    
-])
+def setPath(args):
+    global srcpath
+    srcpath = args[0]
+
+
 def getFiles():
+    global srcpath
     f = []
-    for path, subdirs, files in os.walk("./"):
+    for path, subdirs, files in os.walk(srcpath):
         for name in files:
-            if name.split(".")[1] == "html":
-                f.append(os.path.join(path,name))
+            f.append(os.path.join(path,name))
     return f
 
-# component = manager.args[1]
-# page = manager.args[2]
-# components = []
-# for comp in componentsInHtml(page):
-#     #print(componentsInHtml(page)[comp])
-#     if "Navbar" in comp["name"]:
-#         comp["file"] = (getComponent(component, comp))
-#         #print(comp["component"])
-#         components.append(comp)
+def compile(file="", path=""):
+    global srcpath
+    neededComps = componentsInHtml(file, path=path)
+    for neededComp in neededComps:
+        neededComp["file"] = compile(path=srcpath+neededComp["path"])
 
-# replaceComponent(page, components)
+    return replaceComponent(path=path, file=file, components=neededComps) 
+
+def compileAll(args):
+    for file in getFiles():
+        print("./out/"+os.path.basename(file))
+        with open("./out/"+os.path.basename(file),"w") as f:
+            pass
+        #c = compile(path=file) 
+        #print(c)
+        #f.write(c)
+        #f.close()
+
+
+def start(args):
+    w = watcher()
+    w.start(edited=lambda args : compileAll())
+    
+manager = FlagManager([
+    Flag("-p", "--path", "sets the src path from", setPath),
+    Flag("-c", "", "auto update", compileAll),
+    Flag("-start", "", "auto update", start),
+])
+manager.check()
