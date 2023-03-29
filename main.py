@@ -4,6 +4,7 @@ import os
 from watcher import *
 
 srcpath = "./src"
+outpath = "./out/"
 
 def getProps(component:str):
     props = {}
@@ -34,7 +35,6 @@ def getProps(component:str):
             key += c
             
     return props  
-
 # search for components
 def componentsInHtml(file=""):
     comps = {}
@@ -114,19 +114,42 @@ def getContent(path):
         return f.read()
 
 def compiles(file="",path="./"):
-
-
-    neededComps = componentsInHtml(file=file)
+    p = PyTml()
+    content = p.compiles(file)
+    # gather the components need to compile this file
+    neededComps = componentsInHtml(file=content)
+    # for every component compule that file
     for neededComp in neededComps:
-        compPath = os.path.dirname(path)+neededComp["path"].replace("./","/") 
+        compPath = neededComp["path"].replace("./","/") 
+        srcpath = os.path.dirname(path)
+        if "./" in compPath:
+            # removes last subfolder to go up a folder
+            srcpath = os.path.dirname(srcpath)
+            compPath = compPath.replace("./","/")
+        compPath = srcpath+compPath
+        print(compPath)
         neededComp["file"] = compiles(getContent(compPath), compPath)
-
+    
+    # replace the compoents in my file with the compiled components
     return replaceComponent(file=file, components=neededComps) 
 
 def output(filename, out):
-    with open("./out/"+os.path.basename(filename),"w") as f:
-        f.write(out)
 
+    # create the path if it does not exist
+    outputdir = os.path.dirname(outpath)
+    if not os.path.exists(outputdir):
+        import pathlib
+        pathlib.Path(outputdir).mkdir(parents=True, exist_ok=True)
+
+    # if the output path is a file write to that file
+    if os.path.basename(outpath) :
+        name = outpath#os.path.basename(outpath) 
+    else: 
+        name = outpath+os.path.basename(filename)
+    print(name)
+    with open(name,"w") as f:
+        f.write(out)
+    
 def compileAll(args):
     if args[0] == "all":
         files = getFiles()
@@ -136,19 +159,23 @@ def compileAll(args):
             c = compiles(content, file)
             output(file, c)
     else:
-        p = PyTml()
-        content = p.compiles(getContent(args[0]))
-        c = compiles(content, args[0]) 
-        output(args[0], c)
+        for file in args:
+            c = compiles(getContent(file), file) 
+            output(file, c)
 
 def start(args):
+    # start the file watcher
     w = watcher()
     w.start(edited=lambda : compileAll(["all"]), ignore=["./out"])
 
-    
+def setOutPath(args):
+    global outpath
+    outpath = args[0]
+
 manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
-    Flag("-c", "", "auto update", compileAll),
-    Flag("-start", "", "auto update", start),
+    Flag("-o", "--out-path", "sets the out path", setOutPath),
+    Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compileAll),
+    Flag("start", "--start", "auto compiles", start),
 ])
 manager.check()

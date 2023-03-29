@@ -1,24 +1,70 @@
-import Navbar from "./components/Navbar.html"
-import Btn from "./components/Btn.html"
-{
-def mul():
-    buts = ""
-    for i in range(4):
-        buts += f'<Btn title="{i+1}" ></Btn>\n'
-    return buts
-}
+import Navbar from "./comps/Navbar.html"
+import Footer from "./comps/Footer.html"
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="2" >
-    <title>Document</title>
+    <link rel="stylesheet" href="mall.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&display=swap" rel="stylesheet">
+    
+    <title>Pizzeria</title>
 </head>
 <body>
-    <Navbar title="min navbar" ></Navbar>
-    {mul()}
-    <Btn title="Mamma" ></Btn>
+    <Navbar></Navbar>
+    <div class="snapContainer" style="position: relative;" >
+        <section class="homeimg snapChild " >
+            <h1 class="title" >Campino pizzeria </br> söderköping</h1>
+            <h1 class="cringeCitat" >Pizza är vår grej</h1>
+        </section>
+   
+        <!-- <section class="tider snapChild" style="text-align:center; font-size:18px"  >
+            <p>
+                <strong>ÖPPETTIDER</strong>
+                <br>
+                Måndag – Söndag: 11:00 – 23:00
+                <br>
+                Lunch serveras mån – fre: 11:00 – 14:30
+            </p>
+        </section> -->
+
+        <div class="erbjudanden snapChild">
+           
+            <div class="lunchdiv1">
+                <div class="lunchDiv" >
+                    <h1 style="margin: 0; font-size: 48px;" >Lunch 79:-</h1>
+                    <h1 style="margin: 0; font-size: 48px;" >Vardagar 11-14</h1>
+                    <p style="font-size: 20px;" >
+                        Vi erbjuder den bästa lunchen för ett super pris. Bröd, sallad, dricka och kaffe ingår. 
+                        Välj mellan Pizza, Grillspett, Kebab, Schnitzel, Salladsbar, Gyros, Lövbit, 
+                        Rödspetta och falafel.
+                    </p>
+                </div>
+                <div class="bild1">
+                    <img style="width: 80%;margin: 0;" src="./images/Sweet-and-Spicy-Tomato-Basil-Pepperoni-Pizza-1-2ab0dbfad4d64981845253cd51234978.png" alt="">
+                </div>
+            </div>
+
+            <div class="lunchdiv1">
+                <div class="lunchDiv" style="color: white;" >
+                    <h1 style="margin: 0; font-size: 48px;" >Salladsbar 85:-</h1>
+                    <p style="font-size: 20px;" >
+                        Skapa din egna sallad ur våran fräsha Salladsbar. Välj mellan 5 olika 
+                        ingridenser (sallad, gurka och tomat ingår). 
+                    </p>
+                </div>
+                <div class="bild1">
+                    <img style="width: 80%;" src="./images/salladkvadrat.png" alt="">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <Footer></Footer>
 </body>
 </html>

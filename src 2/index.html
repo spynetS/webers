@@ -1,0 +1,24 @@
+import Navbar from "./components/Navbar.html"
+import Btn from "./components/Btn.html"
+{
+def mul(name):
+    buts = ""
+    for i in range(4):
+        buts += f'<Btn title="{name+str(i+1)}" ></Btn>\n'
+    return buts
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="2" >
+    <title>Document</title>
+</head>
+<body>
+    <Navbar title="min navbar" ></Navbar>
+    {mul("alfred")}
+    <Btn title="Mamma" ></Btn>
+</body>
+</html>

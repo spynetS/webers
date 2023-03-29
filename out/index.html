@@ -1,44 +1,99 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="2" >
-    <title>Document</title>
+    <link rel="stylesheet" href="mall.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italianno&display=swap" rel="stylesheet">
+    
+    <title>Pizzeria</title>
 </head>
 <body>
-    <div style="
-width:100%;
-background-color: gray;
-display: flex;
-padding: 20px;
-justify-content: space-around;
-" >
-    <h1>index</h1>
-    <a href="index.html" style="
-background-color: #00000040;
-
-">index</a>
-
-    <a href="index2.html" style="
-background-color: #00000040;
-
-">index2</a>
-
-</div>
-
-    <button style="" onclick="$onclick" >1</button>
-
-<button style="" onclick="$onclick" >2</button>
-
-<button style="" onclick="$onclick" >3</button>
-
-<button style="" onclick="$onclick" >4</button>
+    <nav>
+    <a href="index.html"   >HOME   </a>
+    <a href="menu.html"    >MENY   </a>
+    <a href="kontakt.html" >KONTAKT</a>
+</nav>
 
 
-    <button style="" onclick="$onclick" >Mamma</button>
+    <div class="snapContainer" style="position: relative;" >
+        <section class="homeimg snapChild " >
+            <h1 class="title" >Campino pizzeria </br> söderköping</h1>
+            <h1 class="cringeCitat" >Pizza är vår grej</h1>
+        </section>
+   
+        <!-- <section class="tider snapChild" style="text-align:center; font-size:18px"  >
+            <p>
+                <strong>ÖPPETTIDER</strong>
+                <br>
+                Måndag – Söndag: 11:00 – 23:00
+                <br>
+                Lunch serveras mån – fre: 11:00 – 14:30
+            </p>
+        </section> -->
+
+        <div class="erbjudanden snapChild">
+           
+            <div class="lunchdiv1">
+                <div class="lunchDiv" >
+                    <h1 style="margin: 0; font-size: 48px;" >Lunch 79:-</h1>
+                    <h1 style="margin: 0; font-size: 48px;" >Vardagar 11-14</h1>
+                    <p style="font-size: 20px;" >
+                        Vi erbjuder den bästa lunchen för ett super pris. Bröd, sallad, dricka och kaffe ingår. 
+                        Välj mellan Pizza, Grillspett, Kebab, Schnitzel, Salladsbar, Gyros, Lövbit, 
+                        Rödspetta och falafel.
+                    </p>
+                </div>
+                <div class="bild1">
+                    <img style="width: 80%;margin: 0;" src="./images/Sweet-and-Spicy-Tomato-Basil-Pepperoni-Pizza-1-2ab0dbfad4d64981845253cd51234978.png" alt="">
+                </div>
+            </div>
+
+            <div class="lunchdiv1">
+                <div class="lunchDiv" style="color: white;" >
+                    <h1 style="margin: 0; font-size: 48px;" >Salladsbar 85:-</h1>
+                    <p style="font-size: 20px;" >
+                        Skapa din egna sallad ur våran fräsha Salladsbar. Välj mellan 5 olika 
+                        ingridenser (sallad, gurka och tomat ingår). 
+                    </p>
+                </div>
+                <div class="bild1">
+                    <img style="width: 80%;" src="./images/salladkvadrat.png" alt="">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <footer class="snapChild" >
+    <div>
+        <h2>Öppettider</h2>
+        <div class="openingHours" >
+            <h3>Måndag 08-22</h3>
+            <h3>Tisdag 08-21</h3>
+            <h3>Onsdag 08-21</h3>
+            <h3>Torsdag 08-21</h3>
+            <h3>Fredag 08-21</h3>
+            <h3>Lördag 08-23</h3>
+            <h3>Söndag 08-19</h3>
+        </div>
+   </div>
+    <div>
+        <h2>Sidor</h2>
+        <a href="index.html"   >HOME   </a>
+        <a href="./html/menu.html"    >MENY   </a>
+        <a href="./html/kontakt.html" >KONTAKT</a>
+    </div>
+    <div>
+        <h2>Kontakt</h2>
+        <h3>Email: campino-pizzeria@fakemail.com</h3>
+        <h3>Telefon: 123456789</h3>
+    </div>
+</footer>
 
 </body>
 </html>
