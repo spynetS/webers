@@ -37,6 +37,7 @@ def getProps(component:str):
     return props  
 # search for components
 def componentsInHtml(file=""):
+    # get the components that was imported
     comps = {}
     for line in file.split("\n"):
         if "import" in line:
@@ -51,15 +52,16 @@ def componentsInHtml(file=""):
     for c in file:
         if not c:
             break
-        
+        # we begin to listen for compname
         if(c == "<") :
             listenForCompName = True
             comp += c
             continue
-        
+        # we end listen and we add the component read to the components list
         if(c == ">" or c == "/") :
             comp += "/>"
             splittet = compName.split(" ")
+
             if(splittet[0] in comps.keys()):
                 components.append({"name":splittet[0], "props": getProps(compName), "component":compName, "path":comps[splittet[0]]})
             comp = ""
@@ -81,7 +83,8 @@ def getComponent(component) -> str:
     return file
 
 def replaceComponent(file="", components=[]):
-    
+    # replaces the component definitions with he compiled
+    # components content 
     tmp = ""
     for line in file.split("\n"):
         if "import" not in line: tmp+=line+"\n"
@@ -109,6 +112,7 @@ def getFiles():
             f.append(os.path.join(path,name))
     return f
 
+# return the content of a file
 def getContent(path):
     with open(path,"r") as f:
         return f.read()
@@ -131,7 +135,7 @@ def compiles(file="",path="./"):
         neededComp["file"] = compiles(getContent(compPath), compPath)
     
     # replace the compoents in my file with the compiled components
-    return replaceComponent(file=file, components=neededComps) 
+    return replaceComponent(file=content, components=neededComps) 
 
 def output(filename, out):
 

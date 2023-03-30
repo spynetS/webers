@@ -1,9 +1,10 @@
 import Navbar from "./components/Navbar.html"
 import Btn from "./components/Btn.html"
+
 {
 def mul(name):
     buts = ""
-    for i in range(4):
+    for i in range(5):
         buts += f'<Btn title="{name+str(i+1)}" ></Btn>\n'
     return buts
 }
@@ -18,7 +19,7 @@ def mul(name):
 </head>
 <body>
     <Navbar title="min navbar" ></Navbar>
-    {mul("alfred")}
+    {mul("al")}
     <Btn title="Mamma" ></Btn>
 </body>
 </html>
