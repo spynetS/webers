@@ -1,4 +1,5 @@
 #!/bin/python
+import pathlib
 from dj2 import *
 from flagser import *
 import os
@@ -38,12 +39,14 @@ def getProps(component:str):
     return props
 # search for components
 def componentsInHtml(file=""):
+    files = getFiles()
     # get the components that was imported
     comps = {}
-    for line in file.split("\n"):
-        if "import" in line:
-            compname = line.split(" ")[1]
-            comps[compname] = line.split(" ")[3].replace("\n", "").replace('"', "")
+    for _file in files:
+        extention = pathlib.Path(_file).suffix
+        if extention == ".html":
+            compname = os.path.basename(_file).replace(extention,"")
+            comps[compname] = _file
 
     components = []
     listenForCompName = False
@@ -65,6 +68,7 @@ def componentsInHtml(file=""):
 
             if(splittet[0] in comps.keys()):
                 components.append({"name":splittet[0], "props": getProps(compName), "component":compName, "path":comps[splittet[0]]})
+                
             comp = ""
             listenForCompName = False
             compName = ""
@@ -85,13 +89,6 @@ def getComponent(component) -> str:
 
 def replaceComponent(file="", components=[]):
     # replaces the component definitions with he compiled
-    # components content
-    tmp = ""
-    for line in file.split("\n"):
-        if "import" not in line: tmp+=line+"\n"
-
-    file = tmp
-
     for component in components:
         file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
         file = file.replace("<"+component["component"]+"/>", component["file"])
@@ -123,6 +120,7 @@ def compiles(file="",path="./"):
     content = p.compiles(file)
     # gather the components need to compile this file
     neededComps = componentsInHtml(file=content)
+    print(path, neededComps)
     # for every component compule that file
     for neededComp in neededComps:
         compPath = neededComp["path"].replace("./","/")
@@ -131,10 +129,9 @@ def compiles(file="",path="./"):
             # removes last subfolder to go up a folder
             srcpath = os.path.dirname(srcpath)
             compPath = compPath.replace("./","/")
-        compPath = srcpath+compPath
-        print(compPath)
+        compPath = neededComp["path"]
         neededComp["file"] = compiles(getContent(compPath), compPath)
-
+        print(path, neededComp["file"])
     # replace the compoents in my file with the compiled components
     return replaceComponent(file=content, components=neededComps)
 
@@ -143,7 +140,6 @@ def output(filename, out):
     # create the path if it does not exist
     outputdir = os.path.dirname(outpath)
     if not os.path.exists(outputdir):
-        import pathlib
         pathlib.Path(outputdir).mkdir(parents=True, exist_ok=True)
 
     # if the output path is a file write to that file
@@ -151,7 +147,7 @@ def output(filename, out):
         name = outpath#os.path.basename(outpath)
     else:
         name = outpath+os.path.basename(filename)
-    print(name)
+
     with open(name,"w") as f:
         f.write(out)
 
