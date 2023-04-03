@@ -1,3 +1,4 @@
+#!/bin/python
 from dj2 import *
 from flagser import *
 import os
@@ -22,7 +23,7 @@ def getProps(component:str):
     for c in comps:
         if c == '"':
             value = not value
-        if c == " " and not value: 
+        if c == " " and not value:
             listenKey = True
             continue
         if c == "=":
@@ -30,11 +31,11 @@ def getProps(component:str):
             ec+=1
             key = ""
             listenKey = False
-            
+
         if listenKey:
             key += c
-            
-    return props  
+
+    return props
 # search for components
 def componentsInHtml(file=""):
     # get the components that was imported
@@ -48,7 +49,7 @@ def componentsInHtml(file=""):
     listenForCompName = False
     compName = ""
     comp = ""
-    
+
     for c in file:
         if not c:
             break
@@ -77,14 +78,14 @@ def getComponent(component) -> str:
     file = ""
     with open(component["path"], "r") as f:
         file = f.read()
-    
+
     for prop in component["props"]:
         file = file.replace("$"+prop,component["props"][prop].replace('"',""))
     return file
 
 def replaceComponent(file="", components=[]):
     # replaces the component definitions with he compiled
-    # components content 
+    # components content
     tmp = ""
     for line in file.split("\n"):
         if "import" not in line: tmp+=line+"\n"
@@ -92,12 +93,12 @@ def replaceComponent(file="", components=[]):
     file = tmp
 
     for component in components:
-        file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"]) 
-        file = file.replace("<"+component["component"]+"/>", component["file"]) 
+        file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
+        file = file.replace("<"+component["component"]+"/>", component["file"])
         for prop in component["props"]:
             file = file.replace("$"+prop,component["props"][prop].replace('"',""))
 
-        
+
     return file
 
 def setPath(args):
@@ -124,7 +125,7 @@ def compiles(file="",path="./"):
     neededComps = componentsInHtml(file=content)
     # for every component compule that file
     for neededComp in neededComps:
-        compPath = neededComp["path"].replace("./","/") 
+        compPath = neededComp["path"].replace("./","/")
         srcpath = os.path.dirname(path)
         if "./" in compPath:
             # removes last subfolder to go up a folder
@@ -133,9 +134,9 @@ def compiles(file="",path="./"):
         compPath = srcpath+compPath
         print(compPath)
         neededComp["file"] = compiles(getContent(compPath), compPath)
-    
+
     # replace the compoents in my file with the compiled components
-    return replaceComponent(file=content, components=neededComps) 
+    return replaceComponent(file=content, components=neededComps)
 
 def output(filename, out):
 
@@ -147,13 +148,13 @@ def output(filename, out):
 
     # if the output path is a file write to that file
     if os.path.basename(outpath) :
-        name = outpath#os.path.basename(outpath) 
-    else: 
+        name = outpath#os.path.basename(outpath)
+    else:
         name = outpath+os.path.basename(filename)
     print(name)
     with open(name,"w") as f:
         f.write(out)
-    
+
 def compileAll(args):
     if args[0] == "all":
         files = getFiles()
@@ -164,7 +165,7 @@ def compileAll(args):
             output(file, c)
     else:
         for file in args:
-            c = compiles(getContent(file), file) 
+            c = compiles(getContent(file), file)
             output(file, c)
 
 def start(args):
