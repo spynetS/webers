@@ -76,6 +76,22 @@ def componentsInHtml(file=""):
         if listenForCompName:
             comp += c
             compName += c
+
+    for component in components:
+        # file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
+        definition = "<"+component["component"]+">" 
+        endDefinition = "</"+component["name"]+">"
+
+        start = file.find(definition) + len(definition)
+        end = file.find(endDefinition)
+
+        child = file[start : end]
+
+        props = component["props"]
+        props["child"] = child
+        component["props"] = props
+
+
     return components
 
 def getComponent(component) -> str:
@@ -90,8 +106,17 @@ def getComponent(component) -> str:
 def replaceComponent(file="", components=[]):
     # replaces the component definitions with he compiled
     for component in components:
-        file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
+        # file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
+        file = file.replace("<"+component["component"]+">", component["file"])
         file = file.replace("<"+component["component"]+"/>", component["file"])
+        file = file.replace("</"+component["name"]+">", "")
+
+        try:
+            file = file.replace(component["props"]["child"], "")
+        except:
+            pass
+
+
         for prop in component["props"]:
             file = file.replace("$"+prop,component["props"][prop].replace('"',""))
 
@@ -120,7 +145,7 @@ def compiles(file="",path="./"):
     content = p.compiles(file)
     # gather the components need to compile this file
     neededComps = componentsInHtml(file=content)
-    print(path, neededComps)
+    #print(path, neededComps)
     # for every component compule that file
     for neededComp in neededComps:
         compPath = neededComp["path"].replace("./","/")
@@ -131,7 +156,7 @@ def compiles(file="",path="./"):
             compPath = compPath.replace("./","/")
         compPath = neededComp["path"]
         neededComp["file"] = compiles(getContent(compPath), compPath)
-        print(path, neededComp["file"])
+        #print(path, neededComp["file"])
     # replace the compoents in my file with the compiled components
     return replaceComponent(file=content, components=neededComps)
 
