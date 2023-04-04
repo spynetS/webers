@@ -106,11 +106,12 @@ def getComponent(component) -> str:
 def replaceComponent(file="", components=[]):
     # replaces the component definitions with he compiled
     for component in components:
-        # file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
+        # replace the componenet definition with the component contenet
         file = file.replace("<"+component["component"]+">", component["file"])
         file = file.replace("<"+component["component"]+"/>", component["file"])
         file = file.replace("</"+component["name"]+">", "")
 
+        # remove the child prop from the file
         try:
             file = file.replace(component["props"]["child"], "")
         except:
