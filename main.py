@@ -62,7 +62,7 @@ def componentsInHtml(file=""):
             comp += c
             continue
         # we end listen and we add the component read to the components list
-        if(c == ">" or c == "/") :
+        if(c == ">") :
             comp += "/>"
             splittet = compName.split(" ")
 
@@ -180,6 +180,7 @@ def output(filename, out):
 def compileAll(args):
     if args[0] == "all":
         files = getFiles()
+        print(files)
         for file in files:
             p = PyTml()
             content = p.compiles(getContent(file))
