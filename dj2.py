@@ -31,7 +31,7 @@ class PyTml:
             if c == "}": depth.pop()
             if len(depth) > 0:
                 code += c
-            if c == "{": 
+            if c == "{":
                 first = True
                 depth.append(c)
         return code
@@ -42,11 +42,14 @@ class PyTml:
 
     def toPythonFile(self,text):
         return self.getDefines(text)+"out =(f'''"+self.getReturn(text)+"''')"
-    
+
 
     def compiles(self,text):
         # to topythonfile will set a out variable to the putput
         # here we return that value
         na = {}
-        exec(self.toPythonFile(text),na)
+        try:
+            exec(self.toPythonFile(text),na)
+        except Exception as e:
+            print("Python error",e)
         return(na["out"])
