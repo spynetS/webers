@@ -1,5 +1,26 @@
-class PyTml:
 
+# this script will retrive the definintions made in the begining of a file
+# and et the return (the html)
+# ---syntax---
+# {
+# def getButtons(amount):
+#     buttons = ""
+#     for i in range(amount):
+#         buttons += f'<button>Button {i}</button>\n'
+#     return buttons
+# }
+
+# <body>
+#     {getButtons()}
+# </body>
+
+# Then it will create a python file with the definition and then
+# the html as a string in the f'''[html]''' format
+# This will do so the python in the html will execute in the string
+# so we get the right output
+# In the compule e return the output of that generated script
+
+class PyTml:
     def getDefines(self,text):
         depth = []
         code = ""
@@ -10,7 +31,7 @@ class PyTml:
             if c == "}": depth.pop()
             if len(depth) > 0:
                 code += c
-            if c == "{": 
+            if c == "{":
                 first = True
                 depth.append(c)
         return code
@@ -21,12 +42,14 @@ class PyTml:
 
     def toPythonFile(self,text):
         return self.getDefines(text)+"out =(f'''"+self.getReturn(text)+"''')"
-    
+
 
     def compiles(self,text):
+        # to topythonfile will set a out variable to the putput
+        # here we return that value
         na = {}
-        exec(self.toPythonFile(text),na)
-        #exec("out = 1",na)
-    #print(na["out"])
+        try:
+            exec(self.toPythonFile(text),na)
+        except Exception as e:
+            print("Python error",e)
         return(na["out"])
-#print(toPythonFile(open("index.html","r").read()))

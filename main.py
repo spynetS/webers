@@ -180,6 +180,7 @@ def output(filename, out):
 def compileAll(args):
     if args[0] == "all":
         files = getFiles()
+        print(files)
         for file in files:
             p = PyTml()
             content = p.compiles(getContent(file))
