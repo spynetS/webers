@@ -178,7 +178,7 @@ def output(filename, out):
         f.write(out)
 
 def compileAll(args):
-    if args[0] == "all":
+    if args[0] == "all" or len(args) == 0:
         files = getFiles()
         print(files)
         for file in files:
@@ -194,7 +194,7 @@ def compileAll(args):
 def start(args):
     # start the file watcher
     w = watcher()
-    w.start(edited=lambda : compileAll(["all"]), ignore=["./out"])
+    w.start(edited=lambda : compileAll(args), ignore=["./out"])
 
 def setOutPath(args):
     global outpath
