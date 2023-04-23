@@ -3,7 +3,7 @@ import pathlib
 from dj2 import *
 from flagser import *
 import os
-from watcher import *
+from watcher import watcher
 
 srcpath = "./src"
 outpath = "./out/"
