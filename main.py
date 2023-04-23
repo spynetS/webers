@@ -178,7 +178,7 @@ def output(filename, out):
         f.write(out)
 
 def compileAll(args):
-    if args[0] == "all" or len(args) == 0:
+    if len(args) == 0 or args[0] == "all":
         files = getFiles()
         print(files)
         for file in files:
