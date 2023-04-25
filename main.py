@@ -3,7 +3,7 @@ import pathlib
 from dj2 import *
 from flagser import *
 import os
-from watcher import *
+from watcher import watcher
 
 srcpath = "./src"
 outpath = "./out/"
@@ -178,7 +178,7 @@ def output(filename, out):
         f.write(out)
 
 def compileAll(args):
-    if args[0] == "all":
+    if len(args) == 0 or args[0] == "all":
         files = getFiles()
         print(files)
         for file in files:
@@ -194,7 +194,7 @@ def compileAll(args):
 def start(args):
     # start the file watcher
     w = watcher()
-    w.start(edited=lambda : compileAll(["all"]), ignore=["./out"])
+    w.start(edited=lambda : compileAll(args), ignore=["./out"])
 
 def setOutPath(args):
     global outpath
@@ -207,3 +207,5 @@ manager = FlagManager([
     Flag("start", "--start", "auto compiles", start),
 ])
 manager.check()
+
+import os
