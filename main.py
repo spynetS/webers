@@ -4,6 +4,7 @@ from dj2 import *
 from flagser import *
 import os
 from watcher import watcher
+from bs4 import BeautifulSoup as bs
 
 srcpath = "./src"
 outpath = "./out/"
@@ -175,7 +176,9 @@ def output(filename, out):
         name = outpath+os.path.basename(filename)
 
     with open(name,"w") as f:
-        f.write(out)
+        f.write(bs(out, features="html.parser").prettify())
+        #f.write(out)
+
 
 def compileAll(args):
     if len(args) == 0 or args[0] == "all":
