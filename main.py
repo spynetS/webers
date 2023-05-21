@@ -144,7 +144,7 @@ def getContent(path):
 
 def compiles(file="",path="./"):
     p = PyTml()
-    content = p.compiles(file)
+    content = p.compiles(file).replace("\n","")
     # gather the components need to compile this file
     neededComps = componentsInHtml(file=content)
     #print(path, neededComps)
@@ -186,7 +186,7 @@ def compileAll(args):
         print(files)
         for file in files:
             p = PyTml()
-            content = p.compiles(getContent(file))
+            content = p.compiles(getContent(file)).replace("\n","")
             c = compiles(content, file)
             output(file, c)
     else:
