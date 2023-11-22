@@ -139,8 +139,10 @@ def getFiles():
 
 # return the content of a file
 def getContent(path):
-    with open(path,"r") as f:
-        return f.read()
+    if ".html" in path:
+        with open(path,"r") as f:
+            return f.read()
+    return ""
 
 def compiles(file="",path="./"):
     p = PyTml()
