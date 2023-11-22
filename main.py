@@ -139,10 +139,8 @@ def getFiles():
 
 # return the content of a file
 def getContent(path):
-    if ".html" in path:
-        with open(path,"r") as f:
-            return f.read()
-    return ""
+    with open(path,"r") as f:
+        return f.read()
 
 def compiles(file="",path="./"):
     p = PyTml()
@@ -187,9 +185,13 @@ def compileAll(args):
         print(files)
         for file in files:
             p = PyTml()
-            content = p.compiles(getContent(file)).replace("\n","")
-            c = compiles(content, file)
-            output(file, c)
+            if ".html" in file:
+                content = p.compiles(getContent(file)).replace("\n","")
+                c = compiles(content, file)
+                output(file, c)
+            else:
+                output(file, getContent(file))
+
     else:
         for file in args:
             c = compiles(getContent(file), file)
