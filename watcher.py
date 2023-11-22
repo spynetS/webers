@@ -17,7 +17,7 @@ class watcher:
         self.sleeptime = 1
 
     def start(self,new_file=lambda: None, edited=lambda :None, logger=Logger(), ignore = ["./.git/"]):
-
+        first = True
         while True: 
             for subdir, dirs, files in os.walk(self.path, topdown=True):
 
@@ -29,9 +29,10 @@ class watcher:
 
                     isBreak = False
                     for k in ignore:
-                        if(k in filePath):
+                        if(k in filePath or ".html" not in filePath):
                             isBreak = True
                     if(isBreak): break
+
 
                     if filePath not in self.readFiles.keys():
                         logger.log("new file detected "+filePath)

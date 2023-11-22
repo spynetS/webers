@@ -1,6 +1,6 @@
 #!/bin/python
 import pathlib
-from dj2 import *
+from PyTml import *
 from flagser import *
 import os
 from watcher import watcher
@@ -179,7 +179,6 @@ def output(filename, out):
         f.write(bs(out, features="html.parser").prettify())
         #f.write(out)
 
-
 def compileAll(args):
     if len(args) == 0 or args[0] == "all":
         files = getFiles()
@@ -196,6 +195,7 @@ def compileAll(args):
 
 def start(args):
     # start the file watcher
+    compileAll([])
     w = watcher()
     w.start(edited=lambda : compileAll(args), ignore=["./out"])
 
@@ -203,12 +203,87 @@ def setOutPath(args):
     global outpath
     outpath = args[0]
 
+def generateExample(args):
+    path = "src"
+    # Check whether the specified path exists or not
+    isExist = os.path.exists(path)
+    if not isExist:
+
+       # Create a new directory because it does not exist
+       os.makedirs(path)
+       print("The new directory is created!")
+    
+    with open("./src/index.html","w") as f:
+        f.write("""
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Document</title>
+                    <script src="https://cdn.tailwindcss.com"></script></head>
+                <body>
+                    <div>
+                        <a href="index.html">Home</a>
+                        <a href="Test.html">Test</a>
+                    </div>
+                    <Searchpage></Searchpage>
+                </body>
+                </html>
+        """)
+    with open("./src/Searchbar.html","w") as f:
+        f.write("""
+            <input type="text" placeholder=$placeholder ></input>
+        """)
+    with open("./src/Button.html","w") as f:
+        f.write("""
+            <button onclick=$onclick class="bg-blue-500 px-4 py-2 rounded-md shadow-lg" >$child</button>
+        """)
+    with open("./src/Searchpage.html","w") as f:
+        f.write("""
+       <div class="flex w-screen h-screen bg-blue-200 flex-col items-center gap-2 justify-center" >
+            <h>Sök</h>
+            <Searchbar placeholder="Har" ></Searchbar> 
+            <Button onclick=alert(10) >Search</Button>
+        </div>
+       """)
+    with open("./src/Test.html","w") as f:
+        f.write("""
+{
+asd = ""
+for i in range(10):
+    asd += f"<h1>Hello this is a test page {i}</h1>"
+
+
+}
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Document</title>
+            <script src="https://cdn.tailwindcss.com"></script></head>
+        <body>
+            <div>
+                <a href="index.html">Home</a>
+                <a href="Test.html">Test</a>
+            </div>
+            {asd}
+        </body>
+        </html>
+        """)
+
 manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
     Flag("-o", "--out-path", "sets the out path", setOutPath),
     Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compileAll),
     Flag("start", "--start", "auto compiles", start),
+    Flag("generate-example", "generate-example", "creates a exmaple", generateExample),
+    
 ])
+manager.description = """Webers is a compiling tool that lets you use components inside html. With the use of PyTml we can script with python
+inside the components aswell. To get a example run `webers generate-example`""" 
 manager.check()
 
 import os

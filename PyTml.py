@@ -14,11 +14,27 @@
 #     {getButtons()}
 # </body>
 
+
+
 # Then it will create a python file with the definition and then
 # the html as a string in the f'''[html]''' format
 # This will do so the python in the html will execute in the string
 # so we get the right output
 # In the compule e return the output of that generated script
+
+#def test(name):
+#    tes=""
+#    for i in range(1):
+#        tes += f"""
+#            <h2>Hello {name}  {i}</h2>
+#        """
+#    return tes
+#out = f"""
+# <body>
+#     {getButtons()}
+# </body>
+#"""
+
 
 class PyTml:
     def getDefines(self,text):
