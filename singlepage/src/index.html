@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="main.js" />
+    <script src="https://cdn.tailwindcss.com"></script></head>
+<body>
+    <div>
+        <div class="w-full items-center  flex flex-row gap-2">
+
+            <Button onClick=changePage('home') title=Home ></Button>
+            <Button onClick=changePage('about') title=About ></Button>
+            <Button onClick=changePage('contactus') title=Contact us ></Button>
+            <Button onClick=changePage('om') title=Contact us ></Button>
+            <Button onClick=changePage('idk') title=Contact us ></Button>
+
+        </div>
+
+        <Page pageName="home" on=True >
+            <Page pageName="idk" on=True >
+                <h1>HOME</h1>
+                <h2>Home</h2>
+            </Page>
+        </Page>
+
+        <Page pageName="about" >
+            <h1>ABOUT</h1>
+        </Page>
+
+        <Page pageName="contactus" >
+            <h1>CONTACT US</h1>
+        </Page>
+
+        <Page pageName="om" >
+            <h1>OM</h1>
+        </Page>
+
+    </div>
+</body>
+</html>

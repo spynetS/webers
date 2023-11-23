@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Document
+  </title>
+  <script src="main.js">
+  </script>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+ </head>
+ <body>
+  <div>
+   <div class="w-full items-center flex flex-row gap-2">
+    <button class="bg-blue-500 px-4 py-2 rounded-md shadow-lg duration-[100ms] hover:-translate-y-1" onclick="changePage('home')">
+     Home
+    </button>
+    <button class="bg-blue-500 px-4 py-2 rounded-md shadow-lg duration-[100ms] hover:-translate-y-1" onclick="changePage('about')">
+     About
+    </button>
+    <button class="bg-blue-500 px-4 py-2 rounded-md shadow-lg duration-[100ms] hover:-translate-y-1" onclick="changePage('contactus')">
+     Contactus
+    </button>
+    <button class="bg-blue-500 px-4 py-2 rounded-md shadow-lg duration-[100ms] hover:-translate-y-1" onclick="changePage('om')">
+     Contactus
+    </button>
+    <button class="bg-blue-500 px-4 py-2 rounded-md shadow-lg duration-[100ms] hover:-translate-y-1" onclick="changePage('idk')">
+     Contactus
+    </button>
+   </div>
+   <div class="PAGE-" id="PAGE-home" style="display:none">
+    <page on="True" pagename="idk">
+     <h1>
+      HOME
+     </h1>
+     <h2>
+      Home
+     </h2>
+    </page>
+   </div>
+   <div class="PAGE-" id="PAGE-about" style="display:none">
+    <h1>
+     ABOUT
+    </h1>
+   </div>
+   <div class="PAGE-" id="PAGE-contactus" style="display:none">
+    <h1>
+     CONTACT US
+    </h1>
+   </div>
+   <div class="PAGE-" id="PAGE-om" style="display:none">
+    <h1>
+     OM
+    </h1>
+   </div>
+  </div>
+ </body>
+</html>
