@@ -29,7 +29,7 @@ class watcher:
 
                     isBreak = False
                     for k in ignore:
-                        if(k in filePath or ".html" not in filePath):
+                        if(k in filePath ):
                             isBreak = True
                     if(isBreak): break
 

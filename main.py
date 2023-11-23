@@ -68,6 +68,7 @@ def componentsInHtml(file=""):
             splittet = compName.split(" ")
 
             if(splittet[0] in comps.keys()):
+                print("add",compName)
                 components.append({"name":splittet[0], "props": getProps(compName), "component":compName, "path":comps[splittet[0]]})
                 
             comp = ""
@@ -78,19 +79,23 @@ def componentsInHtml(file=""):
             comp += c
             compName += c
 
+    prev_end = 0;
     for component in components:
         # file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
         definition = "<"+component["component"]+">" 
         endDefinition = "</"+component["name"]+">"
 
-        start = file.find(definition) + len(definition)
-        end = file.find(endDefinition)
+        start = file.find(definition,prev_end+1) + len(definition)
+        end = file.find(endDefinition,prev_end+1)
+        prev_end = end
 
         child = file[start : end]
 
         props = component["props"]
         props["child"] = child
         component["props"] = props
+        
+    print(components)
 
 
     return components
