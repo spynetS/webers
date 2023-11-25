@@ -65,7 +65,7 @@ class PyTml:
         return text
 
     def toPythonFile(self,text):
-        text = replaceBrack(text)
+        text = self.replaceBrack(text)
         return self.getDefines(text)+"out =(f'''"+self.getReturn(text)+"''')"
 
 
