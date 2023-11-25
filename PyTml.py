@@ -51,12 +51,21 @@ class PyTml:
                 first = True
                 depth.append(c)
         return code
+    
+    def replaceBrack(self,text):
+        #replace the pytml brackets
+        txt = text.replace("${","DOLLARBRACKET").replace("}$","BRACKETDOLLAR")
+        #replace the code brackets (not for pytml)
+        txt = txt.replace("{","OPENBRACKET").replace("}","CLOSINGBRACKET")
+        return txt.replace("DOLLARBRACKET","${").replace("BRACKETDOLLAR","}$")
+
 
     def getReturn(self,text):
         text = text.replace("{"+self.getDefines(text)+"}","")
         return text
 
     def toPythonFile(self,text):
+        text = replaceBrack(text)
         return self.getDefines(text)+"out =(f'''"+self.getReturn(text)+"''')"
 
 
@@ -68,4 +77,4 @@ class PyTml:
             exec(self.toPythonFile(text),na)
         except Exception as e:
             print("Python error",e)
-        return(na["out"])
+        return(na["out"].replace("OPENBRACKET","{").replace("CLOSINGBRACKET","}"))
