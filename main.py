@@ -6,7 +6,7 @@ import os
 from watcher import watcher
 from bs4 import BeautifulSoup as bs
 
-srcpath = "./src"
+srcpath = "./"
 outpath = "./out/"
 
 def getProps(component:str):
