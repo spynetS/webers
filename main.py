@@ -97,6 +97,8 @@ def componentsInHtml(file=""):
             end = file.find(endDefinition)
 
             child = file[start : end]
+            print("definition",definition,child,endDefinition)
+            print("start end",start,end)
 
             props = component["props"]
             props["child"] = child
@@ -119,12 +121,14 @@ def replacePropNameWithPropValue(file, prop_name, prop_value):
     name = ""
     listen = False;
     new_file = ""
+    end = ['"',"<",">"," "]
     for c in file:
         if c == "$":
             listen = True
-        if listen and c == '"' or c == "<" or c == " " :
+        if listen and c in end:
+            name = name.replace("\n","")
             if name == "$"+prop_name:
-                #print("replace",prop_name, "with",prop_value)
+                print("replace",prop_name, "with",prop_value)
                 new_file+=prop_value
             else:
                 new_file+=name
@@ -134,7 +138,6 @@ def replacePropNameWithPropValue(file, prop_name, prop_value):
             name += c
         else:
             new_file += c
-            #print(c,end="")
     return new_file
 
 
@@ -142,16 +145,17 @@ def replaceComponent(file="", components=[]):
     # replaces the component definitions with he compiled
     for component in components:
         # replace the componenet definition with the component contenet
-        file = file.replace("<"+component["component"]+">", component["file"])
         file = file.replace("<"+component["component"]+"/>", component["file"])
+        file = file.replace("<"+component["component"]+">", component["file"])
+        file = file.replace(component["props"]["child"]+"</"+component["name"]+">","")
         file = file.replace("</"+component["name"]+">", "")
 
         # remove the child prop from the file
-        try:
-            file = file.replace(component["props"]["child"], "")
-        except:
-            pass
-
+       # print(component)
+        # try:
+        #     file = file.replace(component["props"]["child"], "")
+        # except:
+        #     pass
     return file
 
 def setPath(args):
