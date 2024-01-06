@@ -278,16 +278,22 @@ for i in range(10):
         </html>
         """)
 
-manager = FlagManager([
+settings_manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
     Flag("-o", "--out-path", "sets the out path", setOutPath),
+]);
+
+manager = FlagManager([
     Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compileAll),
     Flag("start", "--start", "auto compiles", start),
     Flag("generate-example", "generate-example", "creates a exmaple", generateExample),
     
 ])
-manager.description = """Webers is a compiling tool that lets you use components inside html. With the use of PyTml we can script with python
+settings_manager.description = """Webers is a compiling tool that lets you use components inside html. With the use of PyTml we can script with python
 inside the components aswell. To get a example run `webers generate-example`""" 
+print(outpath)
+print(srcpath)
+settings_manager.check()
 manager.check()
 
 import os
