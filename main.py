@@ -216,6 +216,7 @@ def output(filename, out):
         name = outpath+os.path.basename(filename)
 
     with open(name,"w") as f:
+        print(f"compiled correctly. Wrote to {name}")
         f.write(bs(out, features="html.parser").prettify())
         #f.write(out)
 
