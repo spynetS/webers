@@ -113,6 +113,30 @@ def getComponent(component) -> str:
         file = file.replace("$"+prop,component["props"][prop].replace('"',""))
     return file
 
+def replacePropNameWithPropValue(file, prop_name, prop_value):
+    #replace the $name with the name
+    name = ""
+    listen = False;
+    new_file = ""
+    for c in file:
+        if c == "$":
+            listen = True
+        if listen and c == '"' or c == "<" or c == " " :
+            if name == "$"+prop_name:
+                #print("replace",prop_name, "with",prop_value)
+                new_file+=prop_value
+            else:
+                new_file+=name
+            name = ""
+            listen = False
+        if listen:
+            name += c
+        else:
+            new_file += c
+            #print(c,end="")
+    return new_file
+
+
 def replaceComponent(file="", components=[]):
     # replaces the component definitions with he compiled
     for component in components:
@@ -127,9 +151,6 @@ def replaceComponent(file="", components=[]):
         except:
             pass
 
-        for prop in component["props"]:
-            file = file.replace("$"+prop,component["props"][prop].replace('"',""))
-    # print(file[:-1])
     return file
 
 def setPath(args):
@@ -149,6 +170,14 @@ def getContent(path):
     with open(path,"r") as f:
         return f.read()
 
+def setComponentProps(component_content,component):
+    file = component_content
+    for prop in component["props"]:
+        prop_value = component["props"][prop].replace('"',"") # remove " from string
+        file = replacePropNameWithPropValue(file,prop,prop_value)
+    return file
+
+
 def compiles(file="",path="./"):
     p = PyTml()
     content = p.compiles(file).replace("\n","")
@@ -164,7 +193,8 @@ def compiles(file="",path="./"):
             srcpath = os.path.dirname(srcpath)
             compPath = compPath.replace("./","/")
         compPath = neededComp["path"]
-        neededComp["file"] = compiles(getContent(compPath), compPath)
+        component_content = setComponentProps(getContent(compPath),neededComp)
+        neededComp["file"] = compiles(component_content, compPath)
         #print(path, neededComp["file"])
     # replace the compoents in my file with the compiled components
     return replaceComponent(file=content, components=neededComps)
