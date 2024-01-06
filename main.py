@@ -3,6 +3,7 @@ import pathlib
 from PyTml import *
 from flagser import *
 import os
+import sys
 from watcher import watcher
 from bs4 import BeautifulSoup as bs
 
@@ -330,4 +331,5 @@ inside the components aswell. To get a example run `webers generate-example`"""
 settings_manager.check()
 manager.check()
 
-import os
+if len(sys.argv) == 1:
+    print ("-h for help")
