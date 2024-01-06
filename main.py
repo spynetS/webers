@@ -97,8 +97,6 @@ def componentsInHtml(file=""):
             end = file.find(endDefinition)
 
             child = file[start : end]
-            print("definition",definition,child,endDefinition)
-            print("start end",start,end)
 
             props = component["props"]
             props["child"] = child
@@ -128,7 +126,7 @@ def replacePropNameWithPropValue(file, prop_name, prop_value):
         if listen and c in end:
             name = name.replace("\n","")
             if name == "$"+prop_name:
-                print("replace",prop_name, "with",prop_value)
+                #print("replace",prop_name, "with",prop_value)
                 new_file+=prop_value
             else:
                 new_file+=name
