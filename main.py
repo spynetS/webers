@@ -321,7 +321,7 @@ for i in range(10):
 
 settings_manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
-    Flag("-o", "--out-path", "sets the out path", setOutPath),
+    Flag("-o", "--output", "sets the out path", setOutPath),
 ]);
 
 manager = FlagManager([
