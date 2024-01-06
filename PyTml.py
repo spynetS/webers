@@ -57,7 +57,7 @@ class PyTml:
         txt = text.replace("${","DOLLARBRACKET").replace("}$","BRACKETDOLLAR")
         #replace the code brackets (not for pytml)
         txt = txt.replace("{","OPENBRACKET").replace("}","CLOSINGBRACKET")
-        return txt.replace("DOLLARBRACKET","${").replace("BRACKETDOLLAR","}$")
+        return txt.replace("DOLLARBRACKET","{").replace("BRACKETDOLLAR","}")
 
 
     def getReturn(self,text):
@@ -66,7 +66,8 @@ class PyTml:
 
     def toPythonFile(self,text):
         text = self.replaceBrack(text)
-        return self.getDefines(text)+"out =(f'''"+self.getReturn(text)+"''')"
+        text = self.getDefines(text)+"out =(f'''"+self.getReturn(text)+"''')"
+        return text
 
 
     def compiles(self,text):
