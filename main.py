@@ -286,20 +286,20 @@ def generateExample(args):
     with open("./src/Searchpage.html","w") as f:
         f.write("""
        <div class="flex w-screen h-screen bg-blue-200 flex-col items-center gap-2 justify-center" >
-            <h>Sök</h>
-            <Searchbar placeholder="Har" ></Searchbar> 
-            <Button onclick=alert(10) >Search</Button>
+            <h>Search</h>
+            <Searchbar placeholder="Seach" ></Searchbar>
+            <button onclick=alert(10) >Search</button>
         </div>
        """)
     with open("./src/Test.html","w") as f:
         f.write("""
-{
+${
 asd = ""
 for i in range(10):
-    asd += f"<h1>Hello this is a test page {i}</h1>"
+    asd += f"<h1>Hello this is a test page ${i}$</h1>"
 
 
-}
+}$
 
         <!DOCTYPE html>
         <html lang="en">
@@ -313,7 +313,7 @@ for i in range(10):
                 <a href="index.html">Home</a>
                 <a href="Test.html">Test</a>
             </div>
-            {asd}
+            ${asd}$
         </body>
         </html>
         """)
