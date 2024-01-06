@@ -62,13 +62,21 @@ def componentsInHtml(file=""):
             listenForCompName = True
             comp += c
             continue
+        if c == "/" and listenForCompName == True:
+            splittet = compName.split(" ")
+            if splittet[0] in comps.keys():
+                components.append({"name":compName, "props": getProps(compName),"have_child":False, "component":compName, "path":comps[splittet[0]]})
+                comp = ""
+                listenForCompName = False
+                compName = ""
+
         # we end listen and we add the component read to the components list
-        if(c == ">") :
+        if c == ">" and listenForCompName:
             comp += "/>"
             splittet = compName.split(" ")
 
             if(splittet[0] in comps.keys()):
-                components.append({"name":splittet[0], "props": getProps(compName), "component":compName, "path":comps[splittet[0]]})
+                components.append({"name":splittet[0], "props": getProps(compName),"have_child":True, "component":compName, "path":comps[splittet[0]]})
                 
             comp = ""
             listenForCompName = False
@@ -80,17 +88,18 @@ def componentsInHtml(file=""):
 
     for component in components:
         # file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
-        definition = "<"+component["component"]+">" 
-        endDefinition = "</"+component["name"]+">"
+        if component["have_child"] == True:
+            definition = "<"+component["component"]+">"
+            endDefinition = "</"+component["name"]+">"
 
-        start = file.find(definition) + len(definition)
-        end = file.find(endDefinition)
+            start = file.find(definition) + len(definition)
+            end = file.find(endDefinition)
 
-        child = file[start : end]
+            child = file[start : end]
 
-        props = component["props"]
-        props["child"] = child
-        component["props"] = props
+            props = component["props"]
+            props["child"] = child
+            component["props"] = props
 
 
     return components
@@ -118,11 +127,9 @@ def replaceComponent(file="", components=[]):
         except:
             pass
 
-
         for prop in component["props"]:
             file = file.replace("$"+prop,component["props"][prop].replace('"',""))
-
-
+    # print(file[:-1])
     return file
 
 def setPath(args):
@@ -182,7 +189,6 @@ def output(filename, out):
 def compileAll(args):
     if len(args) == 0 or args[0] == "all":
         files = getFiles()
-        print(files)
         for file in files:
             p = PyTml()
             if ".html" in file:
