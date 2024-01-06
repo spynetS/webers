@@ -288,7 +288,7 @@ def generateExample(args):
        <div class="flex w-screen h-screen bg-blue-200 flex-col items-center gap-2 justify-center" >
             <h>Search</h>
             <Searchbar placeholder="Seach" ></Searchbar>
-            <button onclick=alert(10) >Search</button>
+            <Button onclick=alert(10) >Search</Button>
         </div>
        """)
     with open("./src/Test.html","w") as f:
@@ -317,6 +317,7 @@ for i in range(10):
         </body>
         </html>
         """)
+    print("run webers -c all and open ./out/index.html")
 
 settings_manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
