@@ -291,8 +291,6 @@ manager = FlagManager([
 ])
 settings_manager.description = """Webers is a compiling tool that lets you use components inside html. With the use of PyTml we can script with python
 inside the components aswell. To get a example run `webers generate-example`""" 
-print(outpath)
-print(srcpath)
 settings_manager.check()
 manager.check()
 
