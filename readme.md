@@ -53,6 +53,30 @@ for i in range(10):
 ```
 #### How it works
 Everthing under the python block will become  this
-`out = f"""<h1>{asd}</h1>"""`
+```html
+out = f"""
+<div>
+    <h1>This is a example of the power of Webers</h1>
+    {list_of_hello}
+</div>
+"""
+```
+which becomes
+```html
+out = f"""
+<div>
+    <h1>This is a example of the power of Webers</h1>
+    <h1>Hello this is a test page 0</h1>
+    <h1>Hello this is a test page 1</h1>
+    <h1>Hello this is a test page 2</h1>
+    <h1>Hello this is a test page 3</h1>
+    <h1>Hello this is a test page 4</h1>
+    <h1>Hello this is a test page 5</h1>
+    <h1>Hello this is a test page 6</h1>
+    <h1>Hello this is a test page 7</h1>
+    <h1>Hello this is a test page 8</h1>
+    <h1>Hello this is a test page 9</h1>
+</div>
+"""
 and when we then excecute the python the out variable will have the value of asd.
 We then go on and check for components and output.
