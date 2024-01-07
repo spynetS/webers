@@ -91,6 +91,7 @@ which becomes
     <h1>Hello this is a test page 8</h1>
     <h1>Hello this is a test page 9</h1>
 </div>
+```
 and when we then excecute the python the out variable will have the value of asd.
 We then go on and check for components and output.
 
