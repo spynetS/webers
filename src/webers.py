@@ -49,7 +49,7 @@ class Component:
         self.end_definition = "" if definition == self.definition else definition
 
 
-    def add_child_content(self,content):
+    def add_child_data(self,content):
         i = 0
         for name,value in self.props:
             if name == "child":
@@ -87,52 +87,44 @@ class Webers(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         #print("Encountered a start tag:", tag,attrs)
-
         (y,x) = self.getpos()
         definition = self.get_string_from_file(self.current_compile,x,y)
 
-        found = False
-        for comp in self.components:
-            if comp.name.lower() == tag:
-                #print("Component found, add component with src")
+        for comp in self.current_components:
+            comp.add_child_data(definition)
+
+        is_project_component = False
+        for project_component in self.components:
+            if project_component.name.lower() == tag.lower():
+                comp = project_component
                 comp.definition = definition
                 comp.props = attrs
-                self.current_components.append(comp)
-                found = True
-        if not found:
-            #print("Add component ",tag)
-            self.current_components.append(Component(name=tag,props=attrs,definition=definition))
+                is_project_component = True
 
-        for i in range(len(self.current_components)-1):
-            privius = self.current_components[i]
-            newst = self.current_components[len(self.current_components)-1]
-            privius.add_child_content(newst.definition)
+        if not is_project_component:
+            comp = Component(name=tag, definition=definition, props=attrs)
 
-    def printComps(self):
-        for comp in self.current_components:
-            print(comp)
+        self.current_components.append(comp)
+
     def handle_endtag(self, tag):
-        #print("Encountered an end tag :", tag)
         (y,x) = self.getpos()
         end_definition = self.get_string_from_file(self.current_compile,x,y)
-        #print("END TAG:",end_definition,x,y)
-        #self.printComps()
-        close_component = self.current_components.pop()
-        close_component.set_end_definition(end_definition)
-        for comp in self.current_components:
-            comp.add_child_content(close_component.end_definition)
-        self.finished_components.append(close_component)
+        #print("Encountered an end tag :", tag, end_definition, x,y)
 
+
+        close_comp = self.current_components.pop()
+
+        for comp in self.current_components:
+            comp.add_child_data(end_definition)
+
+        close_comp.set_end_definition(end_definition)
+        self.finished_components.append(close_comp)
 
 
     def handle_data(self, data):
         #print("Encountered some data  :", data)
-        if len(self.current_components) > 0:
-            print("adds",data)
-            for comp in self.current_components:
-                pass
-                #print(comp.name)
-                #comp.add_child_content(data)
+        for comp in self.current_components:
+            comp.add_child_data(data)
 
     def fetch_project_components(self):
         f = []
@@ -144,16 +136,19 @@ class Webers(HTMLParser):
         self.components = f
         return f
 
+    def replace_compiled_components(self):
+        for component in self.finished_components:
+            print(component)
+
     def compile(self, file):
         # add the components above as children to the ones under
         self.current_compile = file
         cont = get_content(self.current_compile)
-        #print(cont)
         parser.feed(cont)
-        #comp = self.finished_components.pop()
-        #print(comp)
-        for i in range(len(self.finished_components)-1):
-            #print(bs(self.finished_components[i].get_string(), features="html.parser").prettify())
-            print(self.finished_components[i].props)
+        # for i in range(len(self.finished_components)-1):
+        #     print(self.finished_components[i].get_string(),end="\n------------------\n")
+
+        return self.finished_components
+
 parser = Webers()
-parser.compile("./test/index.html")
+print(parser.compile("./test/index.html"))
