@@ -53,7 +53,7 @@ for i in range(10):
 ```
 #### How it works
 Everthing under the python block will become  this
-```html
+```python
 out = f"""
 <div>
     <h1>This is a example of the power of Webers</h1>
@@ -63,7 +63,6 @@ out = f"""
 ```
 which becomes
 ```html
-out = f"""
 <div>
     <h1>This is a example of the power of Webers</h1>
     <h1>Hello this is a test page 0</h1>
@@ -77,6 +76,5 @@ out = f"""
     <h1>Hello this is a test page 8</h1>
     <h1>Hello this is a test page 9</h1>
 </div>
-"""
 and when we then excecute the python the out variable will have the value of asd.
 We then go on and check for components and output.
