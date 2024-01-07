@@ -1,4 +1,4 @@
-% WEBERS(1) Version 1.0 | Frivolous "Hello World" Documentation
+% WEBERS(1) Version 1.0 | User manual
 
 NAME
 ====
