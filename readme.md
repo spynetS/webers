@@ -1,6 +1,5 @@
 # Webers
 
-## Description
 Webers is a small tool that lets you use components in html.
 Webers also lets you script with python that will be run in compile time.
 This lets you search files, create lists and so on which deletes lots of hard"coding".
