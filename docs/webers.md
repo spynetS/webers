@@ -3,7 +3,7 @@
 NAME
 ====
 
-**hello** — prints Hello, World!
+**Webers** — makes html more componented
 
 SYNOPSIS
 ========
