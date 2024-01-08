@@ -102,9 +102,13 @@ Options
 
 :   Prints brief usage information.
 
--p --path
+-p, --path
 
 :   Sets the path where weber will look for components. DEFAULT="./".
+
+-ip, --ignorepath
+
+: Sets a list of folders to ignore looking for components   
 
 -o, --output
 
@@ -120,9 +124,23 @@ Options
 
 :   Compiles the following files. NOTE: If the compiled file requiers other files in the project they will also be compiled. DEFUALT="all"
 
+-b, --build
+
+:    The build will compile the specified components and also copy the resources to the build output.
+     The build will also look for a **build.json**  file (named specified after option default 'build.json') where      you can specifiy properties, here is an example
+```json
+{
+    "output":"./out/",
+    "srcpath":"./",
+    "compile":["./src/index.html"],
+    "resources":["./public"],
+    "ignorepaths":["./.git"]
+}
+```
+
 generate-example generate-example
 
-:   Generate a small project to so you can check the features out.
+:   Will download the example project from the latest release
 
 start --start
 
