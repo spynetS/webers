@@ -298,14 +298,20 @@ def start(args):
     w.start(edited=lambda : compile(args), ignore=[output])
 
 def generate_example(args):
-    name = "example.tar.gz"
+    name = "Example-project.tar.gz"
     release = "2.0.0"
     url = f"https://github.com/spynetS/webers/releases/download/{release}/{name}"
     os.system(f"wget {url}")
     os.system(f"tar -xzvf {name}")
     os.system(f"rm -rf {name}")
-    os.system(f"mv {name} Example-project")
-    print(f"$ cd Example-project\n$ webers --build")
+    os.system(f"mv test Example-project")
+    print("")
+    print("#############################################################")
+    print("# Now an example project has been initlized.                #")
+    print("# To check it out run the command down bellow.              #")
+    print("# Please go into the src/ folder and check out the src code #")
+    print("#############################################################")
+    print(f"cd Example-project && webers --build && $BROWSER out/index.html")
 
 
 # *** FLAG MANEGMENT *** #
