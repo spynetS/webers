@@ -2,16 +2,16 @@
 # this script will retrive the definintions made in the begining of a file
 # and et the return (the html)
 # ---syntax---
-# {
+# ${
 # def getButtons(amount):
 #     buttons = ""
 #     for i in range(amount):
-#         buttons += f'<button>Button {i}</button>\n'
+#         buttons += f'<button>Button ${i}$</button>\n'
 #     return buttons
-# }
+# }$
 
 # <body>
-#     {getButtons()}
+#     ${getButtons()}$
 # </body>
 
 

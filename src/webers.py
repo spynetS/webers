@@ -1,6 +1,7 @@
 from html.parser import HTMLParser
 import os
 from bs4 import BeautifulSoup as bs
+from PyTml import *
 
 # TODO
 # implement pytml
@@ -9,9 +10,12 @@ from bs4 import BeautifulSoup as bs
 def remove_front_spaces(html):
     return '\n'.join(line.lstrip() for line in html.split('\n'))
 
-def get_content(file):
+def get_content(file,no_change=False):
     with open(file, "r") as f:
-        return remove_front_spaces(bs(f.read(), features="html.parser").prettify())
+        if no_change:
+            return f.read()
+        else:
+            return remove_front_spaces(bs(f.read(), features="html.parser").prettify())
 
 class Component:
     def __init__(self, name="", srcpath="", definition="", end_definition=""):
@@ -142,9 +146,12 @@ class Webers(HTMLParser):
     def compile(self, file="", content=""):
         # we check if user has put in file name or file content
         if content == "":
-            cont = get_content(file)
+            cont = get_content(file,no_change=True)
         else:
             cont = content
+
+        p = PyTml()
+        cont = p.compiles(cont)
 
         self.current_compile = cont
         # start the compiler
@@ -166,4 +173,4 @@ class Webers(HTMLParser):
         return bs(html_without_spaces, features="html.parser").prettify()
 
 parser = Webers()
-print(parser.compile("./test/src/index.html"))
+print(parser.compile("./test/index.html"))
