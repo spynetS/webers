@@ -109,8 +109,12 @@ Options
 -o, --output
 
 :   Set the output path. DEFAULT="./out".
-
+    If output is set to STDOUT/stdout the countent will be printet to terminal
     The path could be a folder or a file. If it is a folder all the components will be output there.
+
+-v, --verbose
+
+: Makes the parser log information about the process
 
 -c, --compile
 
