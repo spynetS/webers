@@ -5,12 +5,10 @@ from bs4 import BeautifulSoup as bs
 from PyTml import *
 from flagser import *
 from watcher import watcher
+import shutil
+import json
 
 # TODO
-# flags
-#   generate-example
-# * if props dont have name add the value and name to parent
-# fix so you can use Button as name??
 
 def log(content,end="\n"):
     global verbose
@@ -28,13 +26,14 @@ def get_content(file,no_change=False):
             return remove_front_spaces(bs(f.read(), features="html.parser").prettify())
 # read all files in the srcpath and if they conatins .html
 # we add them to the componetns list
-def fetch_project_components(srcpath):
+def fetch_project_components(srcpath,ignorepaths=[]):
     f = []
     for path, subdirs, files in os.walk(srcpath):
-        for name in files:
-            if ".html" in name:
-                f.append(Component(name=name.replace(".html", ""),
-                                    srcpath=os.path.join(path, name)))
+        if path not in ignorepaths and path+"/" not in ignorepaths:
+            for name in files:
+                if ".html" in name:
+                    f.append(Component(name=name.replace(".html", ""),
+                                        srcpath=os.path.join(path, name)))
     return f
 
 class Component:
@@ -73,26 +72,27 @@ class Component:
     # then we compile the content to check for comnponents in
     # the compeonnts
     # Then return the result
-    def compile(self,srcpath):
+    def compile(self,srcpath,ignorpaths=["./.git"]):
         log(f"Found {self.name} compiling {self.srcpath}")
         content = get_content(self.srcpath)
         for name, value in self.props:
             content = content.replace("$" + name, value)
-        web = Webers(srcpath=srcpath)
+        web = Webers(srcpath=srcpath,ignorepaths=ignorepaths)
         compiled = web.compile(content=content)
         log(f"--- output {self.name} ---\n {compiled} \n-------------------------")
         return compiled
 
 
 class Webers(HTMLParser):
-    def __init__(self, srcpath="./", output="./out"):
+    def __init__(self, srcpath="./", output="./out",ignorepaths=["./.git"]):
         self.srcpath = srcpath # path to search for components
         self.output = output # path to output to
         self.components = [] # list of the components found in the project
         self.current_compile = "" # content we are parsing now
+        self.ignorepaths = ignorepaths
         #
         # fetching the components in the project
-        self.components = fetch_project_components(self.srcpath)
+        self.components = fetch_project_components(self.srcpath,ignorepaths=ignorepaths)
 
         # current_components are the ones we have read but not closed
         # and finished_componeonts are the components we have closed
@@ -186,7 +186,7 @@ class Webers(HTMLParser):
             html_without_spaces = remove_front_spaces(
                 html_without_spaces.replace(
                     remove_front_spaces(comp.get_string()),
-                    remove_front_spaces(comp.compile(self.srcpath))
+                    remove_front_spaces(comp.compile(self.srcpath,self.ignorepaths))
                 )
             )
 
@@ -197,6 +197,7 @@ class Webers(HTMLParser):
 
 srcpath = "./"
 output = "./out/"
+ignorepaths = ["./.git","./out/"]
 verbose = False
 
 # *** SET OPTIONS *** #
@@ -208,6 +209,12 @@ def setPath(args):
 def setOutput(args):
     global output
     output = args[0]
+    ignorepaths.remove("./out/")
+    ignorepaths.append(output)
+
+def setIgnorePaths(args):
+    global ignorepaths
+    ignorepaths += args
 
 def setVerbose(args):
     global verbose
@@ -236,15 +243,49 @@ def compile(args):
     global srcpath
     log(f"srcpath {srcpath}")
     if "all" in args:
-        for comp in fetch_project_components(srcpath):
+        for comp in fetch_project_components(srcpath,ignorepaths=ignorepaths):
             log(f"comp srcpath {comp.srcpath}")
-            parser = Webers(srcpath=srcpath)
+            parser = Webers(srcpath=srcpath,ignorepaths=ignorepaths)
             content = parser.compile(comp.srcpath)
             output_content(os.path.basename(comp.srcpath),content)
     else:
         for arg in args:
-            parser = Webers(srcpath=srcpath)
+            parser = Webers(srcpath=srcpath,ignorepaths=ignorepaths)
             output_content(os.path.basename(arg),parser.compile(arg))
+
+def build(args):
+    data = None
+    try:
+        # Open the file in read mode
+        with open("./build.json" if len(args) == 0 else args[0], "r") as f:
+            # Load JSON data from the file
+            data = json.loads(f.read())
+    except:pass
+
+    global srcpath
+    global output
+    if data != None:
+        output = data["output"]
+        srcpath = data["srcpath"]
+
+        try:
+            shutil.rmtree(f"{output}")
+        except:pass
+
+        compile(data["compile"])
+        for cp in data["resources"]:
+            if os.path.isdir(cp):
+                shutil.copytree(f"{srcpath}{cp}",f"{output}{cp}")
+            else:
+                shutil.copy(f"{srcpath}{cp}",f"{output}{cp}")
+
+    else:
+        try:
+            shutil.rmtree(f"{output}")
+        except:pass
+        compile(["all"])
+        shutil.copytree(f"{srcpath}public",f"{output}public")
+
 
 def start(args):
     global output
@@ -255,13 +296,19 @@ def start(args):
     w = watcher()
     w.start(edited=lambda : compile(args), ignore=[output])
 
-def generate_example():
-    pass
+def generate_example(args):
+    name = "1.0.0.zip"
+    url = f"https://github.com/spynetS/webers/archive/refs/tags/{name}"
+    os.system(f"wget {url}")
+    os.system(f"unzip {name}")
+    os.system(f"rm -rf {name}")
+
 
 # *** FLAG MANEGMENT *** #
 
 settings_manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
+    Flag("-ip", "--ignore-path", "sets paths to ignore looking in", setIgnorePaths),
     Flag("-o", "--output", "sets the out path (if STDOUT/stdout it will print to stdout)", setOutput),
     Flag("-v", "--verbose", "if called logs will be outputed", setVerbose),
 
@@ -269,6 +316,7 @@ settings_manager = FlagManager([
 
 manager = FlagManager([
     Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compile),
+    Flag("-b", "--build", "will read build.json for config and compile the files and copy the resorurces to output. If no build.json exists it will copy all files and copy the public folder to output", build),
     Flag("start", "--start", "auto compiles", start),
     Flag("generate-example", "generate-example", "creates a exmaple", generate_example),
 
@@ -280,3 +328,4 @@ manager.check()
 
 if len(sys.argv) == 1:
     print ("-h for help")
+
