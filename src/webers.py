@@ -4,9 +4,12 @@ import pathlib
 from bs4 import BeautifulSoup as bs
 from PyTml import *
 from flagser import *
+from watcher import watcher
 
 # TODO
 # flags
+#   generate-example
+# * if props dont have name add the value and name to parent
 # fix so you can use Button as name??
 
 def log(content,end="\n"):
@@ -76,7 +79,9 @@ class Component:
         for name, value in self.props:
             content = content.replace("$" + name, value)
         web = Webers(srcpath=srcpath)
-        return web.compile(content=content)
+        compiled = web.compile(content=content)
+        log(f"--- output {self.name} ---\n {compiled} \n-------------------------")
+        return compiled
 
 
 class Webers(HTMLParser):
@@ -108,7 +113,7 @@ class Webers(HTMLParser):
         raise Exception(f"Definition not found {y}")
 
     def handle_starttag(self, tag, attrs):
-
+        log(f"Enter tag: {tag}")
         #retrive the line of the definition of the component
         (y, x) = self.getpos()
         definition = self.get_string_from_file(self.current_compile, x, y)
@@ -129,6 +134,8 @@ class Webers(HTMLParser):
                 self.current_components.append(comp)
 
     def handle_endtag(self, tag):
+        log(f"closing tag: {tag}")
+        #retrive the line of the definition of the component
         # retrive the end line defintion
         (y, x) = self.getpos()
         end_definition = self.get_string_from_file(self.current_compile, x, y)
@@ -143,7 +150,10 @@ class Webers(HTMLParser):
 
         # we add the end defintion to the previues read compoennts
         for comp in self.current_components:
-            comp.add_child_data(end_definition)
+            # if it is, for example, a imge tag the end_defintion will be the same as the start
+            # and then we dont have to save it
+            if end_definition[1] == '/':
+                comp.add_child_data(end_definition)
 
     def handle_data(self, data):
         # add the data to all rriviues read compoennts
@@ -187,7 +197,7 @@ class Webers(HTMLParser):
 
 srcpath = "./"
 output = "./out/"
-verbose = True
+verbose = False
 
 # *** SET OPTIONS *** #
 
@@ -199,6 +209,9 @@ def setOutput(args):
     global output
     output = args[0]
 
+def setVerbose(args):
+    global verbose
+    verbose = True
 # *** PROGRAM FUNCTIONS *** #
 
 def output_content(filename,content):
@@ -215,7 +228,6 @@ def output_content(filename,content):
             name = output#os.path.basename(outpath)
         else:
             name = output+os.path.basename(filename)
-
         with open(name,"w") as f:
             print(f"compiled correctly. Wrote to {name}\n")
             f.write(bs(content, features="html.parser").prettify())
@@ -227,21 +239,32 @@ def compile(args):
         for comp in fetch_project_components(srcpath):
             log(f"comp srcpath {comp.srcpath}")
             parser = Webers(srcpath=srcpath)
-            output_content(comp.srcpath,parser.compile(comp.srcpath))
+            content = parser.compile(comp.srcpath)
+            output_content(os.path.basename(comp.srcpath),content)
     else:
         for arg in args:
             parser = Webers(srcpath=srcpath)
-            output_content(arg,parser.compile(arg))
+            output_content(os.path.basename(arg),parser.compile(arg))
 
-def start():
-    pass
+def start(args):
+    global output
+    # start the file watcher
+    if len(args) == 0:
+        args = ["all"]
+    compile(args)
+    w = watcher()
+    w.start(edited=lambda : compile(args), ignore=[output])
 
 def generate_example():
     pass
 
+# *** FLAG MANEGMENT *** #
+
 settings_manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
     Flag("-o", "--output", "sets the out path (if STDOUT/stdout it will print to stdout)", setOutput),
+    Flag("-v", "--verbose", "if called logs will be outputed", setVerbose),
+
 ]);
 
 manager = FlagManager([
