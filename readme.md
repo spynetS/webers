@@ -82,4 +82,4 @@ We then go on and check for components and output.
 ```
 ## Acknowledgments
 
-Special thanks to [SharkooMaster](https://github.com/SharkooMaster) for insperation and help on the project
+Special thanks to [SharkooMaster](https://github.com/SharkooMaster) for inspiration and help on the project
