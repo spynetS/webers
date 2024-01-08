@@ -2,6 +2,9 @@ from html.parser import HTMLParser
 import os
 from bs4 import BeautifulSoup as bs
 
+# TODO
+# implement pytml
+# fix so you can use Button as name??
 
 def remove_front_spaces(html):
     return '\n'.join(line.lstrip() for line in html.split('\n'))
@@ -163,4 +166,4 @@ class Webers(HTMLParser):
         return bs(html_without_spaces, features="html.parser").prettify()
 
 parser = Webers()
-print(parser.compile("./test/index.html"))
+print(parser.compile("./test/src/index.html"))
