@@ -298,11 +298,14 @@ def start(args):
     w.start(edited=lambda : compile(args), ignore=[output])
 
 def generate_example(args):
-    name = "1.0.0.zip"
-    url = f"https://github.com/spynetS/webers/archive/refs/tags/{name}"
+    name = "example.tar.gz"
+    release = "2.0.0"
+    url = f"https://github.com/spynetS/webers/releases/download/{release}/{name}"
     os.system(f"wget {url}")
-    os.system(f"unzip {name}")
+    os.system(f"tar -xzvf {name}")
     os.system(f"rm -rf {name}")
+    os.system(f"mv {name} Example-project")
+    print(f"$ cd Example-project\n$ webers --build")
 
 
 # *** FLAG MANEGMENT *** #
