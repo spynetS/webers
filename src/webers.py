@@ -1,11 +1,18 @@
 from html.parser import HTMLParser
 import os
+import pathlib
 from bs4 import BeautifulSoup as bs
 from PyTml import *
+from flagser import *
 
 # TODO
-# implement pytml
+# flags
 # fix so you can use Button as name??
+
+def log(content,end="\n"):
+    global verbose
+    if verbose: print(content,end=end)
+
 
 def remove_front_spaces(html):
     return '\n'.join(line.lstrip() for line in html.split('\n'))
@@ -16,6 +23,16 @@ def get_content(file,no_change=False):
             return f.read()
         else:
             return remove_front_spaces(bs(f.read(), features="html.parser").prettify())
+# read all files in the srcpath and if they conatins .html
+# we add them to the componetns list
+def fetch_project_components(srcpath):
+    f = []
+    for path, subdirs, files in os.walk(srcpath):
+        for name in files:
+            if ".html" in name:
+                f.append(Component(name=name.replace(".html", ""),
+                                    srcpath=os.path.join(path, name)))
+    return f
 
 class Component:
     def __init__(self, name="", srcpath="", definition="", end_definition=""):
@@ -53,11 +70,12 @@ class Component:
     # then we compile the content to check for comnponents in
     # the compeonnts
     # Then return the result
-    def compile(self):
+    def compile(self,srcpath):
+        log(f"Found {self.name} compiling {self.srcpath}")
         content = get_content(self.srcpath)
         for name, value in self.props:
             content = content.replace("$" + name, value)
-        web = Webers()
+        web = Webers(srcpath=srcpath)
         return web.compile(content=content)
 
 
@@ -67,8 +85,9 @@ class Webers(HTMLParser):
         self.output = output # path to output to
         self.components = [] # list of the components found in the project
         self.current_compile = "" # content we are parsing now
-
-        self.fetch_project_components()  # fetching the components in the project
+        #
+        # fetching the components in the project
+        self.components = fetch_project_components(self.srcpath)
 
         # current_components are the ones we have read but not closed
         # and finished_componeonts are the components we have closed
@@ -131,16 +150,6 @@ class Webers(HTMLParser):
         for comp in self.current_components:
             comp.add_child_data(data)
 
-    # read all files in the srcpath and if they conatins .html
-    # we add them to the componetns list
-    def fetch_project_components(self):
-        f = []
-        for path, subdirs, files in os.walk(self.srcpath):
-            for name in files:
-                if ".html" in name and name not in self.current_compile:
-                    f.append(Component(name=name.replace(".html", ""),
-                                       srcpath=os.path.join(path, name)))
-        self.components = f
 
     # function to compule file
     def compile(self, file="", content=""):
@@ -150,9 +159,10 @@ class Webers(HTMLParser):
         else:
             cont = content
 
+        #print(cont)
         p = PyTml()
         cont = p.compiles(cont)
-
+        cont = remove_front_spaces(bs(cont,features="html.parser").prettify())
         self.current_compile = cont
         # start the compiler
         self.feed(cont)
@@ -166,11 +176,84 @@ class Webers(HTMLParser):
             html_without_spaces = remove_front_spaces(
                 html_without_spaces.replace(
                     remove_front_spaces(comp.get_string()),
-                    remove_front_spaces(comp.compile())
+                    remove_front_spaces(comp.compile(self.srcpath))
                 )
             )
 
         return bs(html_without_spaces, features="html.parser").prettify()
 
-parser = Webers()
-print(parser.compile("./test/index.html"))
+
+# **** USER INTERACTINS **** #
+
+srcpath = "./"
+output = "./out/"
+verbose = True
+
+# *** SET OPTIONS *** #
+
+def setPath(args):
+    global srcpath
+    srcpath = args[0]
+
+def setOutput(args):
+    global output
+    output = args[0]
+
+# *** PROGRAM FUNCTIONS *** #
+
+def output_content(filename,content):
+    global output
+    if output == "stdout" or output == "STDOUT":
+        print(f"--- output of {filename} ---\n",content)
+    else:
+        # create the path if it does not exist
+        outputdir = os.path.dirname(output)
+        if not os.path.exists(outputdir):
+            pathlib.Path(outputdir).mkdir(parents=True, exist_ok=True)
+        # if the output path is a file write to that file
+        if os.path.basename(output) :
+            name = output#os.path.basename(outpath)
+        else:
+            name = output+os.path.basename(filename)
+
+        with open(name,"w") as f:
+            print(f"compiled correctly. Wrote to {name}\n")
+            f.write(bs(content, features="html.parser").prettify())
+
+def compile(args):
+    global srcpath
+    log(f"srcpath {srcpath}")
+    if "all" in args:
+        for comp in fetch_project_components(srcpath):
+            log(f"comp srcpath {comp.srcpath}")
+            parser = Webers(srcpath=srcpath)
+            output_content(comp.srcpath,parser.compile(comp.srcpath))
+    else:
+        for arg in args:
+            parser = Webers(srcpath=srcpath)
+            output_content(arg,parser.compile(arg))
+
+def start():
+    pass
+
+def generate_example():
+    pass
+
+settings_manager = FlagManager([
+    Flag("-p", "--path", "sets the src path from", setPath),
+    Flag("-o", "--output", "sets the out path (if STDOUT/stdout it will print to stdout)", setOutput),
+]);
+
+manager = FlagManager([
+    Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compile),
+    Flag("start", "--start", "auto compiles", start),
+    Flag("generate-example", "generate-example", "creates a exmaple", generate_example),
+
+])
+settings_manager.description = """Webers is a compiling tool that lets you use components inside html. With the use of PyTml we can script with python
+inside the components aswell. To get a example run `webers generate-example`"""
+settings_manager.check()
+manager.check()
+
+if len(sys.argv) == 1:
+    print ("-h for help")
