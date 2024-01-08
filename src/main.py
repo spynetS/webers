@@ -1,339 +1,331 @@
-#!/bin/python
+from html.parser import HTMLParser
+import os
 import pathlib
+from bs4 import BeautifulSoup as bs
 from PyTml import *
 from flagser import *
-import os
-import sys
 from watcher import watcher
-from bs4 import BeautifulSoup as bs
+import shutil
+import json
+
+# TODO
+
+def log(content,end="\n"):
+    global verbose
+    if verbose: print(content,end=end)
+
+
+def remove_front_spaces(html):
+    return '\n'.join(line.lstrip() for line in html.split('\n'))
+
+def get_content(file,no_change=False):
+    with open(file, "r") as f:
+        if no_change:
+            return f.read()
+        else:
+            return remove_front_spaces(bs(f.read(), features="html.parser").prettify())
+# read all files in the srcpath and if they conatins .html
+# we add them to the componetns list
+def fetch_project_components(srcpath,ignorepaths=[]):
+    f = []
+    for path, subdirs, files in os.walk(srcpath):
+        if path not in ignorepaths and path+"/" not in ignorepaths:
+            for name in files:
+                if ".html" in name:
+                    f.append(Component(name=name.replace(".html", ""),
+                                        srcpath=os.path.join(path, name)))
+    return f
+
+class Component:
+    def __init__(self, name="", srcpath="", definition="", end_definition=""):
+        self.name = name #tag name
+        self.srcpath = srcpath # its file path
+        self.props = [] # all attributes of the components in the defintino
+        self.definition = definition # the string defintion
+        self.end_definition = end_definition # the string end defintino
+
+    # if there is mutliple child props (preivies there were)
+    # we returns them as one here
+    def get_child(self):
+        asd = ""
+        for name, value in self.props:
+            if name == "child":
+                if value is not None:
+                    asd += value
+        return asd
+
+    # returns the compoentns whole defintino
+    def get_string(self):
+        return self.definition + self.get_child() + self.end_definition
+
+    def set_end_definition(self, definition):
+        self.end_definition = "" if definition == self.definition else definition
+
+    def add_child_data(self, content):
+        for i, (name, value) in enumerate(self.props):
+            if name == "child":
+                self.props[i] = ("child", value + content)
+                return
+        self.props.append(("child", content))
+
+    # first we replace all props with the value
+    # then we compile the content to check for comnponents in
+    # the compeonnts
+    # Then return the result
+    def compile(self,srcpath,ignorpaths=["./.git"]):
+        log(f"Found {self.name} compiling {self.srcpath}")
+        content = get_content(self.srcpath)
+        for name, value in self.props:
+            content = content.replace("$" + name, value)
+        web = Webers(srcpath=srcpath,ignorepaths=ignorepaths)
+        compiled = web.compile(content=content)
+        log(f"--- output {self.name} ---\n {compiled} \n-------------------------")
+        return compiled
+
+
+class Webers(HTMLParser):
+    def __init__(self, srcpath="./", output="./out",ignorepaths=["./.git"]):
+        self.srcpath = srcpath # path to search for components
+        self.output = output # path to output to
+        self.components = [] # list of the components found in the project
+        self.current_compile = "" # content we are parsing now
+        self.ignorepaths = ignorepaths
+        #
+        # fetching the components in the project
+        self.components = fetch_project_components(self.srcpath,ignorepaths=ignorepaths)
+
+        # current_components are the ones we have read but not closed
+        # and finished_componeonts are the components we have closed
+        # (current_components goes to finsihed when they are closed)
+        self.current_components = []
+        self.finished_components = []
+
+        super().__init__()
+
+    # returns a string from the line number provided
+    def get_string_from_file(self, content, x, y):
+        lines = content.split("\n")
+        count = 0
+        for line in lines:
+            count += 1
+            if count == y:
+                return line
+        raise Exception(f"Definition not found {y}")
+
+    def handle_starttag(self, tag, attrs):
+        log(f"Enter tag: {tag}")
+        #retrive the line of the definition of the component
+        (y, x) = self.getpos()
+        definition = self.get_string_from_file(self.current_compile, x, y)
+
+        #we add that definition to all previues read components' child property
+        for comp in self.current_components:
+            comp.add_child_data(definition)
+
+        # we check if the tag is a component in th project
+        # if so we set the properties and add it to the read components
+        for project_comps in self.components:
+            if project_comps.name.lower() == tag.lower():
+                comp = Component()
+                comp.name = tag
+                comp.srcpath = project_comps.srcpath
+                comp.props = attrs
+                comp.definition = definition
+                self.current_components.append(comp)
+
+    def handle_endtag(self, tag):
+        log(f"closing tag: {tag}")
+        #retrive the line of the definition of the component
+        # retrive the end line defintion
+        (y, x) = self.getpos()
+        end_definition = self.get_string_from_file(self.current_compile, x, y)
+
+        # we pop the last component in the current
+        # and add it to the finished components
+        if len(self.current_components) > 0:
+            if self.current_components[-1].name == tag:
+                comp = self.current_components.pop()
+                comp.set_end_definition(end_definition)
+                self.finished_components.append(comp)
+
+        # we add the end defintion to the previues read compoennts
+        for comp in self.current_components:
+            # if it is, for example, a imge tag the end_defintion will be the same as the start
+            # and then we dont have to save it
+            if end_definition[1] == '/':
+                comp.add_child_data(end_definition)
+
+    def handle_data(self, data):
+        # add the data to all rriviues read compoennts
+        for comp in self.current_components:
+            comp.add_child_data(data)
+
+
+    # function to compule file
+    def compile(self, file="", content=""):
+        # we check if user has put in file name or file content
+        if content == "":
+            cont = get_content(file,no_change=True)
+        else:
+            cont = content
+
+        #print(cont)
+        p = PyTml()
+        cont = p.compiles(cont)
+        cont = remove_front_spaces(bs(cont,features="html.parser").prettify())
+        self.current_compile = cont
+        # start the compiler
+        self.feed(cont)
+
+        #remove all spaces before to easier replace compoinentsn
+        html_without_spaces = remove_front_spaces(cont)
+
+        # we go though all finsished components and replaces
+        # the defintions (get_stirng) with the components compiled content
+        for comp in reversed(self.finished_components):
+            html_without_spaces = remove_front_spaces(
+                html_without_spaces.replace(
+                    remove_front_spaces(comp.get_string()),
+                    remove_front_spaces(comp.compile(self.srcpath,self.ignorepaths))
+                )
+            )
+
+        return bs(html_without_spaces, features="html.parser").prettify()
+
+
+# **** USER INTERACTINS **** #
 
 srcpath = "./"
-outpath = "./out/"
+output = "./out/"
+ignorepaths = ["./.git","./out/"]
+verbose = False
 
-def getProps(component:str):
-    props = {}
-    listenKey = True
-    key = ""
-    comps = ""
-    # remove the name of the component
-    # by spliting spaces and adding every one except the first to a str
-    for i in (component.split(' ')[1:]):
-        comps += i+" "
-
-    ec = 1
-    # for char in string if we find a equals we ad the key and the value
-    value = False
-    for c in comps:
-        if c == '"':
-            value = not value
-        if c == " " and not value:
-            listenKey = True
-            continue
-        if c == "=":
-            props[key] = comps.split("=")[ec].replace(" "+comps.split("=")[ec].split(" ")[-1],"")
-            ec+=1
-            key = ""
-            listenKey = False
-
-        if listenKey:
-            key += c
-
-    return props
-# search for components
-def componentsInHtml(file=""):
-    files = getFiles()
-    # get the components that was imported
-    comps = {}
-    for _file in files:
-        extention = pathlib.Path(_file).suffix
-        if extention == ".html":
-            compname = os.path.basename(_file).replace(extention,"")
-            comps[compname] = _file
-
-    components = []
-    listenForCompName = False
-    compName = ""
-    comp = ""
-
-    for c in file:
-        if not c:
-            break
-        # we begin to listen for compname
-        if(c == "<") :
-            listenForCompName = True
-            comp += c
-            continue
-        if c == "/" and listenForCompName == True:
-            splittet = compName.split(" ")
-            if splittet[0] in comps.keys():
-                components.append({"name":compName, "props": getProps(compName),"have_child":False, "component":compName, "path":comps[splittet[0]]})
-                comp = ""
-                listenForCompName = False
-                compName = ""
-
-        # we end listen and we add the component read to the components list
-        if c == ">" and listenForCompName:
-            comp += "/>"
-            splittet = compName.split(" ")
-
-            if(splittet[0] in comps.keys()):
-                components.append({"name":splittet[0], "props": getProps(compName),"have_child":True, "component":compName, "path":comps[splittet[0]]})
-                
-            comp = ""
-            listenForCompName = False
-            compName = ""
-
-        if listenForCompName:
-            comp += c
-            compName += c
-
-    for component in components:
-        # file = file.replace("<"+component["component"]+"></"+component["name"]+">", component["file"])
-        if component["have_child"] == True:
-            definition = "<"+component["component"]+">"
-            endDefinition = "</"+component["name"]+">"
-
-            start = file.find(definition) + len(definition)
-            end = file.find(endDefinition)
-
-            child = file[start : end]
-
-            props = component["props"]
-            props["child"] = child
-            component["props"] = props
-
-
-    return components
-
-def getComponent(component) -> str:
-    file = ""
-    with open(component["path"], "r") as f:
-        file = f.read()
-
-    for prop in component["props"]:
-        file = file.replace("$"+prop,component["props"][prop].replace('"',""))
-    return file
-
-def replacePropNameWithPropValue(file, prop_name, prop_value):
-    #replace the $name with the name
-    name = ""
-    listen = False;
-    new_file = ""
-    end = ['"',"<",">"," "]
-    for c in file:
-        if c == "$":
-            listen = True
-        if listen and c in end:
-            name = name.replace("\n","")
-            if name == "$"+prop_name:
-                #print("replace",prop_name, "with",prop_value)
-                new_file+=prop_value
-            else:
-                new_file+=name
-            name = ""
-            listen = False
-        if listen:
-            name += c
-        else:
-            new_file += c
-    return new_file
-
-
-def replaceComponent(file="", components=[]):
-    # replaces the component definitions with he compiled
-    for component in components:
-        # replace the componenet definition with the component contenet
-        file = file.replace("<"+component["component"]+"/>", component["file"])
-        file = file.replace("<"+component["component"]+">", component["file"])
-        file = file.replace(component["props"]["child"]+"</"+component["name"]+">","")
-        file = file.replace("</"+component["name"]+">", "")
-
-        # remove the child prop from the file
-       # print(component)
-        # try:
-        #     file = file.replace(component["props"]["child"], "")
-        # except:
-        #     pass
-    return file
+# *** SET OPTIONS *** #
 
 def setPath(args):
     global srcpath
     srcpath = args[0]
 
-def getFiles():
+def setOutput(args):
+    global output
+    output = args[0]
+    ignorepaths.remove("./out/")
+    ignorepaths.append(output)
+
+def setIgnorePaths(args):
+    global ignorepaths
+    ignorepaths += args
+
+def setVerbose(args):
+    global verbose
+    verbose = True
+# *** PROGRAM FUNCTIONS *** #
+
+def output_content(filename,content):
+    global output
+    if output == "stdout" or output == "STDOUT":
+        print(f"--- output of {filename} ---\n",content)
+    else:
+        # create the path if it does not exist
+        outputdir = os.path.dirname(output)
+        if not os.path.exists(outputdir):
+            pathlib.Path(outputdir).mkdir(parents=True, exist_ok=True)
+        # if the output path is a file write to that file
+        if os.path.basename(output) :
+            name = output#os.path.basename(outpath)
+        else:
+            name = output+os.path.basename(filename)
+        with open(name,"w") as f:
+            print(f"compiled correctly. Wrote to {name}\n")
+            f.write(bs(content, features="html.parser").prettify())
+
+def compile(args):
     global srcpath
-    f = []
-    for path, subdirs, files in os.walk(srcpath):
-        for name in files:
-            f.append(os.path.join(path,name))
-    return f
-
-# return the content of a file
-def getContent(path):
-    with open(path,"r") as f:
-        return f.read()
-
-def setComponentProps(component_content,component):
-    file = component_content
-    for prop in component["props"]:
-        prop_value = component["props"][prop].replace('"',"") # remove " from string
-        file = replacePropNameWithPropValue(file,prop,prop_value)
-    return file
-
-
-def compiles(file="",path="./"):
-    p = PyTml()
-    content = p.compiles(file).replace("\n","")
-    # gather the components need to compile this file
-    neededComps = componentsInHtml(file=content)
-    #print(path, neededComps)
-    # for every component compule that file
-    for neededComp in neededComps:
-        compPath = neededComp["path"].replace("./","/")
-        srcpath = os.path.dirname(path)
-        if "./" in compPath:
-            # removes last subfolder to go up a folder
-            srcpath = os.path.dirname(srcpath)
-            compPath = compPath.replace("./","/")
-        compPath = neededComp["path"]
-        component_content = setComponentProps(getContent(compPath),neededComp)
-        neededComp["file"] = compiles(component_content, compPath)
-        #print(path, neededComp["file"])
-    # replace the compoents in my file with the compiled components
-    return replaceComponent(file=content, components=neededComps)
-
-def output(filename, out):
-
-    # create the path if it does not exist
-    outputdir = os.path.dirname(outpath)
-    if not os.path.exists(outputdir):
-        pathlib.Path(outputdir).mkdir(parents=True, exist_ok=True)
-
-    # if the output path is a file write to that file
-    if os.path.basename(outpath) :
-        name = outpath#os.path.basename(outpath)
+    log(f"srcpath {srcpath}")
+    if "all" in args:
+        for comp in fetch_project_components(srcpath,ignorepaths=ignorepaths):
+            log(f"comp srcpath {comp.srcpath}")
+            parser = Webers(srcpath=srcpath,ignorepaths=ignorepaths)
+            content = parser.compile(comp.srcpath)
+            output_content(os.path.basename(comp.srcpath),content)
     else:
-        name = outpath+os.path.basename(filename)
+        for arg in args:
+            parser = Webers(srcpath=srcpath,ignorepaths=ignorepaths)
+            output_content(os.path.basename(arg),parser.compile(arg))
 
-    with open(name,"w") as f:
-        print(f"compiled correctly. Wrote to {name}")
-        f.write(bs(out, features="html.parser").prettify())
-        #f.write(out)
+def build(args):
+    data = None
+    try:
+        # Open the file in read mode
+        with open("./build.json" if len(args) == 0 else args[0], "r") as f:
+            # Load JSON data from the file
+            data = json.loads(f.read())
+    except:pass
 
-def compileAll(args):
-    if len(args) == 0 or args[0] == "all":
-        files = getFiles()
-        for file in files:
-            p = PyTml()
-            if ".html" in file:
-                content = p.compiles(getContent(file)).replace("\n","")
-                c = compiles(content, file)
-                output(file, c)
+    global srcpath
+    global output
+    if data != None:
+        output = data["output"]
+        srcpath = data["srcpath"]
+
+        try:
+            shutil.rmtree(f"{output}")
+        except:pass
+
+        compile(data["compile"])
+        for cp in data["resources"]:
+            if os.path.isdir(cp):
+                shutil.copytree(f"{srcpath}{cp}",f"{output}{cp}")
             else:
-                output(file, getContent(file))
+                shutil.copy(f"{srcpath}{cp}",f"{output}{cp}")
 
     else:
-        for file in args:
-            c = compiles(getContent(file), file)
-            output(file, c)
+        try:
+            shutil.rmtree(f"{output}")
+        except:pass
+        compile(["all"])
+        shutil.copytree(f"{srcpath}public",f"{output}public")
+
 
 def start(args):
+    global output
     # start the file watcher
-    compileAll([])
+    if len(args) == 0:
+        args = ["all"]
+    compile(args)
     w = watcher()
-    w.start(edited=lambda : compileAll(args), ignore=["./out"])
+    w.start(edited=lambda : compile(args), ignore=[output])
 
-def setOutPath(args):
-    global outpath
-    outpath = args[0]
-
-def generateExample(args):
-    path = "src"
-    # Check whether the specified path exists or not
-    isExist = os.path.exists(path)
-    if not isExist:
-
-       # Create a new directory because it does not exist
-       os.makedirs(path)
-       print("The new directory is created!")
-    
-    with open("./src/index.html","w") as f:
-        f.write("""
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Document</title>
-                    <script src="https://cdn.tailwindcss.com"></script></head>
-                <body>
-                    <div>
-                        <a href="index.html">Home</a>
-                        <a href="Test.html">Test</a>
-                    </div>
-                    <Searchpage></Searchpage>
-                </body>
-                </html>
-        """)
-    with open("./src/Searchbar.html","w") as f:
-        f.write("""
-            <input type="text" placeholder=$placeholder ></input>
-        """)
-    with open("./src/Button.html","w") as f:
-        f.write("""
-            <button onclick=$onclick class="bg-blue-500 px-4 py-2 rounded-md shadow-lg" >$child</button>
-        """)
-    with open("./src/Searchpage.html","w") as f:
-        f.write("""
-       <div class="flex w-screen h-screen bg-blue-200 flex-col items-center gap-2 justify-center" >
-            <h>Search</h>
-            <Searchbar placeholder="Seach" ></Searchbar>
-            <Button onclick=alert(10) >Search</Button>
-        </div>
-       """)
-    with open("./src/Test.html","w") as f:
-        f.write("""
-${
-asd = ""
-for i in range(10):
-    asd += f"<h1>Hello this is a test page ${i}$</h1>"
+def generate_example(args):
+    name = "1.0.0.zip"
+    url = f"https://github.com/spynetS/webers/archive/refs/tags/{name}"
+    os.system(f"wget {url}")
+    os.system(f"unzip {name}")
+    os.system(f"rm -rf {name}")
 
 
-}$
-
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Document</title>
-            <script src="https://cdn.tailwindcss.com"></script></head>
-        <body>
-            <div>
-                <a href="index.html">Home</a>
-                <a href="Test.html">Test</a>
-            </div>
-            ${asd}$
-        </body>
-        </html>
-        """)
-    print("run webers -c all and open ./out/index.html")
+# *** FLAG MANEGMENT *** #
 
 settings_manager = FlagManager([
     Flag("-p", "--path", "sets the src path from", setPath),
-    Flag("-o", "--output", "sets the out path", setOutPath),
+    Flag("-ip", "--ignore-path", "sets paths to ignore looking in", setIgnorePaths),
+    Flag("-o", "--output", "sets the out path (if STDOUT/stdout it will print to stdout)", setOutput),
+    Flag("-v", "--verbose", "if called logs will be outputed", setVerbose),
+
 ]);
 
 manager = FlagManager([
-    Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compileAll),
+    Flag("-c", "--compile", "compile a file or all with all keyword (-c all)", compile),
+    Flag("-b", "--build", "will read build.json for config and compile the files and copy the resorurces to output. If no build.json exists it will copy all files and copy the public folder to output", build),
     Flag("start", "--start", "auto compiles", start),
-    Flag("generate-example", "generate-example", "creates a exmaple", generateExample),
-    
+    Flag("generate-example", "generate-example", "creates a exmaple", generate_example),
+
 ])
 settings_manager.description = """Webers is a compiling tool that lets you use components inside html. With the use of PyTml we can script with python
-inside the components aswell. To get a example run `webers generate-example`""" 
+inside the components aswell. To get a example run `webers generate-example`"""
 settings_manager.check()
 manager.check()
 
 if len(sys.argv) == 1:
     print ("-h for help")
+
