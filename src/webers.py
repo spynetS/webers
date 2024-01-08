@@ -39,7 +39,6 @@ class Component:
         self.props.append(("child", content))
 
     def compile(self):
-        print("compile", self.name)
         content = get_content(self.srcpath)
         for name, value in self.props:
             content = content.replace("$" + name, value)
@@ -75,7 +74,6 @@ class Webers(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         (y, x) = self.getpos()
-        print("Encountered a start tag:", tag, attrs, y)
 
         definition = self.get_string_from_file(self.current_compile, x, y)
         start = y
@@ -85,7 +83,6 @@ class Webers(HTMLParser):
 
         for project_comps in self.components:
             if project_comps.name.lower() == tag.lower():
-                print("prod comp", tag)
                 comp = Component()
                 comp.name = tag
                 comp.start = start
@@ -96,13 +93,11 @@ class Webers(HTMLParser):
 
     def handle_endtag(self, tag):
         (y, x) = self.getpos()
-        print("Encountered an end tag:", tag, x, y)
         end_definition = self.get_string_from_file(self.current_compile, x, y)
         end = y
 
         if len(self.current_components) > 0:
             if self.current_components[-1].name == tag:
-                print("finished", tag)
                 comp = self.current_components.pop()
                 comp.end = end
                 comp.set_end_definition(end_definition)
@@ -112,7 +107,6 @@ class Webers(HTMLParser):
             comp.add_child_data(end_definition)
 
     def handle_data(self, data):
-        print("Encountered some data  :", data)
         for comp in self.current_components:
             comp.add_child_data(data)
 
@@ -126,7 +120,6 @@ class Webers(HTMLParser):
         self.components = f
 
     def compile(self, file="", content=""):
-        print("---compiles---\n", file, content, end="\n--------------\n")
         if content == "":
             cont = get_content(file)
         else:
@@ -135,19 +128,10 @@ class Webers(HTMLParser):
         self.current_compile = cont
         self.feed(cont)
 
-        print("len after", len(self.finished_components), id(self.finished_components))
-
-        self.close()
-        self.reset()
 
         html_without_spaces = remove_front_spaces(cont)
 
-        print("finished component")
-        for comp in self.finished_components:
-            print("fi", comp.name)
-
         for comp in reversed(self.finished_components):
-            print("compiling component", comp.name)
             html_without_spaces = remove_front_spaces(
                 html_without_spaces.replace(
                     remove_front_spaces(comp.get_string()),
@@ -155,9 +139,7 @@ class Webers(HTMLParser):
                 )
             )
 
-        print("---output---\n", cont, end="\n------------\n")
         return bs(html_without_spaces, features="html.parser").prettify()
 
 parser = Webers()
-print(id(parser))
 print(parser.compile("./test/index.html"))
